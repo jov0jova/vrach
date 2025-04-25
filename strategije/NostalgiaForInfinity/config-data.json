@@ -1,10 +1,13 @@
 {
+  // WARNING: This is an example configuration
+  // Please use at own risk
+  // For full documentation on Freqtrade configuration files please visit https://www.freqtrade.io/en/stable/configuration/
   "dry_run": true,
   "dry_run_wallet": 60,
   "grinding_enable": true,
   "max_open_trades": 6,
   "stake_currency": "USDT",
-  "stake_amount": "unlimited",
+  "stake_amount": 60,
   "tradable_balance_ratio": 0.8,
   "fiat_display_currency": "USD",
   "force_entry_enable": true,
@@ -43,7 +46,63 @@
     "order_book_top": 1,
     "price_last_balance": 0
   },
-   "internals": {
+  "exchange": {
+    "name": "binance",
+    "key": "",
+    "password": "",
+    "secret": "",
+    "ccxt_config": {
+      "enableRateLimit": true,
+      "rateLimit": 60,
+      "options": {
+        "brokerId": null,
+        // "broker": {
+        //   "spot": null,
+        //   "margin": null,
+        //   "future": null,
+        //   "delivery": null,
+        //   "swap": null,
+        //   "option": null
+        // },
+        "partner": {
+          "spot": {
+            "id": null,
+            "key": null
+          },
+          "future": {
+            "id": null,
+            "key": null
+          }
+        }
+      }
+    },
+    "ccxt_async_config": {
+      "enableRateLimit": true,
+      "rateLimit": 60,
+      "options": {
+        "brokerId": null,
+        // "broker": {
+        //   "spot": null,
+        //   "margin": null,
+        //   "future": null,
+        //   "delivery": null,
+        //   "swap": null,
+        //   "option": null
+        // },
+        "partner": {
+          "spot": {
+            "id": null,
+            "key": null
+          },
+          "future": {
+            "id": null,
+            "key": null
+          }
+        }
+      }
+    }
+  },
+  "internals": {
     "process_throttle_secs": 5
   }
 }
