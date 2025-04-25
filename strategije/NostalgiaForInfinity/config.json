@@ -1,0 +1,7 @@
+"add_config_files": [
+  "config-data.json",
+  "config-trade.json",
+  "config-secret.json",
+  "config-whitelist.json",
+  "config-blacklist.json"
+]
