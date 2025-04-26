@@ -49,7 +49,7 @@
     "price_last_balance": 0
   },
   "exchange": {
-    "name": "",
+    "name": "binance",
     "key": "",
     "password": "",
     "secret": "",
@@ -102,9 +102,20 @@
           }
         }
       }
-    }
-  },
+    },
+  "pair_whitelist": [
+            "BTC/USDT",
+            "ETH/USDT",
+            "BNB/USDT"
+        ],  
+   "pair_blacklist": [
+            ".*UP/USDT",
+            ".*DOWN/USDT",
+            ".*BEAR/USDT",
+            ".*BULL/USDT"
+        ]
   "internals": {
     "process_throttle_secs": 5
   }
+}
 }
