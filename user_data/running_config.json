@@ -13,7 +13,7 @@
   "pairlists": [
     {
       "method": "StaticPairList",
-      "pairs": [
+      "pair_whitelist": [
         "ALGO/BTC",
         "ATOM/BTC",
         "BAT/BTC",
