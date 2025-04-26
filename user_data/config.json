@@ -1,7 +1,7 @@
 {
   "strategy": "vrach_V1",
   "add_config_files": [
-    "private_config.json.json"
+    "private_config.json"
   ],
     "dry_run": true,
     "dry_run_wallet": 1000,
