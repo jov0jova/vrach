@@ -1,5 +1,5 @@
 {
-  "strategy": "vrach_v1",
+  "strategy": "vrach_V1",
   "add_config_files": [
     "trading_mode-spot.json",
     "whitelist.json",
