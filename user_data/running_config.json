@@ -103,7 +103,7 @@
         }
       }
     },
-  "pair_whitelist": [
+    "pair_whitelist": [
             "BTC/USDT",
             "ETH/USDT",
             "BNB/USDT"
@@ -114,8 +114,9 @@
             ".*BEAR/USDT",
             ".*BULL/USDT"
         ]
+  }
   "internals": {
     "process_throttle_secs": 5
   }
 }
-}
+
