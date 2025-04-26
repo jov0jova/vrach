@@ -114,7 +114,7 @@
             ".*BEAR/USDT",
             ".*BULL/USDT"
         ]
-  }
+  },
   "internals": {
     "process_throttle_secs": 5
   }
