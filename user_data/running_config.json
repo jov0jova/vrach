@@ -10,6 +10,17 @@
   "force_entry_enable": true,
   "initial_state": "running",
   "timeframe": "5m",
+  "pair_whitelist": [
+    "BTC/USDT",
+    "ETH/USDT",
+    "BNB/USDT"
+  ],
+  "pair_blacklist": [
+    ".*UP/USDT",
+    ".*DOWN/USDT",
+    ".*BEAR/USDT",
+    ".*BULL/USDT"
+  ],
   "pairlists": [
     {
       "method": "StaticPairList"
@@ -58,14 +69,6 @@
       "rateLimit": 60,
       "options": {
         "brokerId": null,
-        // "broker": {
-        //   "spot": null,
-        //   "margin": null,
-        //   "future": null,
-        //   "delivery": null,
-        //   "swap": null,
-        //   "option": null
-        // },
         "partner": {
           "spot": {
             "id": null,
@@ -83,14 +86,6 @@
       "rateLimit": 60,
       "options": {
         "brokerId": null,
-        // "broker": {
-        //   "spot": null,
-        //   "margin": null,
-        //   "future": null,
-        //   "delivery": null,
-        //   "swap": null,
-        //   "option": null
-        // },
         "partner": {
           "spot": {
             "id": null,
@@ -102,21 +97,9 @@
           }
         }
       }
-    },
-    "pair_whitelist": [
-            "BTC/USDT",
-            "ETH/USDT",
-            "BNB/USDT"
-        ],  
-   "pair_blacklist": [
-            ".*UP/USDT",
-            ".*DOWN/USDT",
-            ".*BEAR/USDT",
-            ".*BULL/USDT"
-        ]
+    }
   },
   "internals": {
     "process_throttle_secs": 5
   }
 }
-
