@@ -1,7 +1,6 @@
 {
   "strategy": "vrach_V1",
   "add_config_files": [
-    "trading_mode.json",
     "running_config.json",
     "private_config.json"
   ]
