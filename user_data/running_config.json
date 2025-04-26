@@ -10,6 +10,11 @@
   "force_entry_enable": true,
   "initial_state": "running",
   "timeframe": "5m",
+  "pairlists": [
+    {
+      "method": "StaticPairList"
+    }
+  ],
   "unfilledtimeout": {
     "entry": 20,
     "exit": 20,
