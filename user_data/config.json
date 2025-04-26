@@ -1,7 +1,61 @@
 {
   "strategy": "vrach_V1",
-  "add_config_files": [
-    "running_config.json",
-    "private_config.json"
-  ]
+    "dry_run": true,
+    "dry_run_wallet": 1000,
+    "exchange": {
+        "name": "binance",
+        "key": "PASTE_YOUR_API_KEY",
+        "secret": "PASTE_YOUR_SECRET_KEY",
+        "ccxt_config": {},
+        "ccxt_async_config": {},
+        "pair_whitelist": ["BTC/USDT", "ETH/USDT", "SOL/USDT", "BNB/USDT", "MATIC/USDT"],
+        "pair_blacklist": ["*BTC/BNB*", "*UP*", "*DOWN*"]
+    },
+    "stake_currency": "USDT",
+    "stake_amount": "unlimited",
+    "fiat_display_currency": "USD",
+    "timeframe": "5m",
+    "informative_timeframes": {
+        "30m": ["close", "ema50", "ema200", "rsi"],
+        "1h": ["close", "ema50", "ema200", "rsi"],
+        "1d": ["close", "ema50", "ema200", "rsi"]
+    },
+    "strategy": "SmartLifeBuilderV4",
+    "max_open_trades": 5,
+    "trade_limit": 10,
+    "order_types": {
+        "buy": "limit",
+        "sell": "limit",
+        "stoploss": "limit",
+        "stoploss_on_exchange": false
+    },
+    "bid_strategy": {
+        "price_side": "bid",
+        "ask_last_balance": 0.0,
+        "use_order_book": true,
+        "order_book_top": 1
+    },
+    "ask_strategy": {
+        "price_side": "ask",
+        "use_order_book": true,
+        "order_book_top": 1
+    },
+    "stoploss": {
+        "enabled": true,
+        "stoploss": -0.02,
+        "use_custom_stoploss": true
+    },
+    "trailing_stop": true,
+    "trailing_stop_positive": 0.007,
+    "trailing_stop_positive_offset": 0.01,
+    "trailing_only_offset_is_reached": false,
+    "process_only_new_candles": true,
+    "use_exit_signal": true,
+    "exit_profit_only": false,
+    "ignore_buying_expired_candle_after": 0,
+    "logger": {
+        "level": "info",
+        "logrotate_days": 7
+    }
 }
+
