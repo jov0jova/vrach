@@ -10,21 +10,21 @@
   "force_entry_enable": true,
   "initial_state": "running",
   "timeframe": "5m",
-  "pair_whitelist": [
-    "BTC/USDT",
-    "ETH/USDT",
-    "BNB/USDT"
+  "pairlists": [
+    {
+      "method": "StaticPairList",
+      "pairlist": [
+        "BTC/USDT",
+        "ETH/USDT",
+        "BNB/USDT"
+      ]
+    }
   ],
   "pair_blacklist": [
     ".*UP/USDT",
     ".*DOWN/USDT",
     ".*BEAR/USDT",
     ".*BULL/USDT"
-  ],
-  "pairlists": [
-    {
-      "method": "StaticPairList"
-    }
   ],
   "unfilledtimeout": {
     "entry": 20,
