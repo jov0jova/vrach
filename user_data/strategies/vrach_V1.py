@@ -2,22 +2,23 @@ from freqtrade.strategy.interface import IStrategy
 from pandas import DataFrame
 import talib.abstract as ta
 
-class vrach_V1(IStrategy):
+class Vrach_Ultimate_PRO_2(IStrategy):
     INTERFACE_VERSION = 3
 
     timeframe = '5m'
+    inf_timeframe = '1h'  # koristimo i dodatni timeframe za bolji kontekst
 
     minimal_roi = {
-        "0": 0.02,
-        "10": 0.01,
-        "20": 0
+        "0": 0.03,   # Povećano jer ulazi sigurnije
+        "10": 0.015,
+        "30": 0
     }
 
-    stoploss = -0.015
+    stoploss = -0.02
 
     trailing_stop = True
-    trailing_stop_positive = 0.01
-    trailing_stop_positive_offset = 0.015
+    trailing_stop_positive = 0.015
+    trailing_stop_positive_offset = 0.02
     trailing_only_offset_is_reached = True
 
     use_custom_stoploss = False
@@ -25,9 +26,10 @@ class vrach_V1(IStrategy):
     can_short = False
 
     process_only_new_candles = True
+    startup_candle_count: int = 300
 
     def informative_pairs(self):
-        return [("BTC/USDT", "5m")]
+        return [("BTC/USDT", self.inf_timeframe)]
 
     def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         # EMA
@@ -38,18 +40,24 @@ class vrach_V1(IStrategy):
         dataframe['rsi'] = ta.RSI(dataframe, timeperiod=14)
         dataframe['rsi_fast'] = ta.RSI(dataframe, timeperiod=5)
 
-        # Prosečan volumen
-        dataframe['volume_mean_slow'] = dataframe['volume'].rolling(window=20).mean()
+        # Volume
+        dataframe['volume_mean_slow'] = dataframe['volume'].rolling(window=50).mean()
 
-        # Wick kalkulacije
+        # Wick and body
         dataframe['upper_wick'] = dataframe['high'] - dataframe[['close', 'open']].max(axis=1)
         dataframe['lower_wick'] = dataframe[['close', 'open']].min(axis=1) - dataframe['low']
         dataframe['body'] = abs(dataframe['close'] - dataframe['open'])
 
+        # Informative timeframe indicators (1h BTC/USDT market crash detection)
+        inf_df = self.dp.get_pair_dataframe(pair="BTC/USDT", timeframe=self.inf_timeframe)
+        if inf_df is not None:
+            inf_df['rsi_btc'] = ta.RSI(inf_df, timeperiod=14)
+            self.btc_rsi = inf_df['rsi_btc'].iloc[-1]
+            self.btc_pct_change = (inf_df['close'].iloc[-1] - inf_df['close'].iloc[-6]) / inf_df['close'].iloc[-6]
+
         return dataframe
 
     def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
-        # Hammer setup
         hammer_signal = (
             (dataframe['close'] < dataframe['ema200']) &
             (dataframe['rsi'] < 35) &
@@ -57,16 +65,24 @@ class vrach_V1(IStrategy):
             (dataframe['lower_wick'] > dataframe['body'] * 1.5)
         )
 
-        # Scalping setup
         scalping_signal = (
             (dataframe['rsi_fast'] < 30) &
-            (dataframe['volume'] > dataframe['volume_mean_slow'] * 2)
+            (dataframe['volume'] > dataframe['volume_mean_slow'] * 2) &
+            (dataframe['close'] > dataframe['ema50'])
         )
 
+        trend_reversal_signal = (
+            (dataframe['ema50'] > dataframe['ema200']) &
+            (dataframe['rsi_fast'] < 40) &
+            (dataframe['lower_wick'] > dataframe['body'])
+        )
+
+        # Kombinovani entry
         dataframe.loc[
             (
-                (hammer_signal | scalping_signal) &
-                (~self.market_crash)
+                (hammer_signal | scalping_signal | trend_reversal_signal) &
+                (~self.market_crash) &
+                (self.btc_rsi > 35)
             ),
             'enter_long'
         ] = 1
@@ -76,21 +92,16 @@ class vrach_V1(IStrategy):
     def populate_exit_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         dataframe.loc[
             (
-                (dataframe['close'] > dataframe['ema50']) |
+                (dataframe['close'] > dataframe['ema50']) &
                 (dataframe['rsi'] > 60)
             ),
             'exit_long'
         ] = 1
         return dataframe
 
-    # Market crash protection
     @property
     def market_crash(self) -> bool:
-        btc_df = self.dp.get_pair_dataframe(pair="BTC/USDT", timeframe="5m")
-        if btc_df is not None and len(btc_df) > 5:
-            last_close = btc_df['close'].iloc[-1]
-            prev_close = btc_df['close'].iloc[-5]
-            change = (last_close - prev_close) / prev_close
-            if change < -0.02:
-                return True
-        return False
+        try:
+            return self.btc_pct_change < -0.02
+        except AttributeError:
+            return False
