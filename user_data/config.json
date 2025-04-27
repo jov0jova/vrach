@@ -1,5 +1,5 @@
 {
-"strategy": "Vrach_Ultimate_PRO_2",
+"strategy": "Vrach_Ultimate_PRO",
   "add_config_files": [
     "trading_mode.json",
     "whitelist.json",
