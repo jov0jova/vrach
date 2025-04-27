@@ -54,6 +54,43 @@
     "logger": {
         "level": "info",
         "logrotate_days": 7
+    },
+  "pairlists": [
+    {
+        "method": "StaticPairList",
+        "pairs": [
+          "BTC/USDT",
+          "ETH/USDT",
+          "XRP/USDT",
+          "BNB/USDT",
+          "SOL/USDT",
+          "USDC/USDT",
+          "DOGE/USDT",
+          "ADA/USDT",
+          "TRX/USDT",
+          "WBTC/USDT",
+          "SUI/USDT",
+          "LINK/USDT",
+          "AVAX/USDT",
+          "XLM/USDT",
+          "SHIB/USDT",
+          "HBAR/USDT",
+          "TON/USDT",
+          "BCH/USDT",
+          "LTC/USDT",
+          "DOT/USDT",
+          "PEPE/USDT",
+          "UNI/USDT",
+          "APT/USDT",
+          "ONDO/USDT",
+          "NEAR/USDT",
+          "TRUMP/USDT",
+          "TAO/USDT",
+          "ICP/USDT",
+          "ETC/USDT",
+          "AAVE/USDT"
+        ]
     }
+],
 }
 
