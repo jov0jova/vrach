@@ -7,6 +7,7 @@ class vrach_V1(IStrategy):
 
     timeframe = '5m'
     informative_timeframes = {
+        '5m': ['close', 'ema50', 'ema200', 'rsi'],
         '30m': ['close', 'ema50', 'ema200', 'rsi'],
         '1h': ['close', 'ema50', 'ema200', 'rsi'],
         '1d': ['close', 'ema50', 'ema200', 'rsi']
@@ -29,46 +30,41 @@ class vrach_V1(IStrategy):
         dataframe['momentum'] = dataframe['close'] - dataframe['close'].shift(5)
         dataframe['volume_mean'] = dataframe['volume'].rolling(30).mean()
         dataframe['percent_change'] = dataframe['close'].pct_change() * 100
-
-        # Novi indikatori
-        macd = ta.MACD(dataframe)
-        dataframe['macd'] = macd['macd']
-        dataframe['macdsignal'] = macd['macdsignal']
-        dataframe['macdhist'] = macd['macdhist']
-        
+    
+        # Bollinger Bands
+        dataframe['bb_lower'], dataframe['bb_middle'], dataframe['bb_upper'] = ta.BBANDS(dataframe, timeperiod=20)
+    
+        # StochRSI
         stoch = ta.STOCHRSI(dataframe, timeperiod=14)
         dataframe['stochrsi_k'] = stoch['fastk']
         dataframe['stochrsi_d'] = stoch['fastd']
-
+    
         # EMA50 slope
         dataframe['ema50_slope'] = dataframe['ema50'] - dataframe['ema50'].shift(1)
-
+    
         return dataframe
-
+    
     def populate_buy_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         dataframe.loc[
             (
-                (dataframe['ema50'] > dataframe['ema200']) &  # EMA50 veća od EMA200 (bullish trend)
+                (dataframe['ema50'] > dataframe['ema200']) &  # Bullish trend
                 (dataframe['ema50_slope'] > 0) &  # EMA50 raste
-                (dataframe['rsi'] > 35) & (dataframe['rsi'] < 65) &  # RSI u normalnom opsegu
-                (dataframe['percent_change'] < -0.5) & (dataframe['percent_change'] > -3.0) &  # Promena cena u poslednjih nekoliko perioda
+                (dataframe['rsi'] > 35) & (dataframe['rsi'] < 65) &  # RSI u neutralnom opsegu
                 (dataframe['momentum'] > 0) &  # Pozitivan momentum
-                (dataframe['macd'] > dataframe['macdsignal']) &  # MACD linija je iznad signalne linije
-                (dataframe['macdhist'] > 0) &  # MACD histogram je pozitivan
-                (dataframe['stochrsi_k'] < 20) & (dataframe['stochrsi_d'] < 20) &  # StochRSI je u oversold zoni
-                (dataframe['volume'] > dataframe['volume_mean'] * 0.7)  # Volumen veći od prosečnog
+                (dataframe['close'] < dataframe['bb_lower']) &  # Cena dodiruje donju Bollinger Band granicu
+                (dataframe['stochrsi_k'] < 20) & (dataframe['stochrsi_d'] < 20)  # StochRSI oversold zona
             ),
             'buy'
-        ] = 1  # Postavi signal za kupovinu kada su svi uslovi ispunjeni
+        ] = 1
         return dataframe
-
-
+    
     def populate_sell_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         dataframe.loc[
             (
-                (dataframe['rsi'] > 70) |
-                (dataframe['close'] < dataframe['ema50']) |
-                (dataframe['momentum'] < 0)  # Momentum opada
+                (dataframe['rsi'] > 70) |  # RSI overbought zona
+                (dataframe['momentum'] < 0) |  # Momentum opada
+                (dataframe['close'] > dataframe['bb_upper']) |  # Cena dodiruje gornju Bollinger Band granicu
+                ((dataframe['close'] < dataframe['ema50']) & (dataframe['ema50_slope'] < 0))  # Cena ispod EMA50
             ),
             'sell'
         ] = 1
