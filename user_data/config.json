@@ -23,7 +23,6 @@
         "1h": ["close", "ema50", "ema200", "rsi"],
         "1d": ["close", "ema50", "ema200", "rsi"]
     },
-    "strategy": "SmartLifeBuilderV4",
     "max_open_trades": 5,
     "trade_limit": 10,
     "order_types": {
@@ -43,11 +42,7 @@
         "use_order_book": true,
         "order_book_top": 1
     },
-    "stoploss": {
-        "enabled": true,
-        "stoploss": -0.02,
-        "use_custom_stoploss": true
-    },
+    "stoploss": -0.02,
     "trailing_stop": true,
     "trailing_stop_positive": 0.007,
     "trailing_stop_positive_offset": 0.01,
