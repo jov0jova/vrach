@@ -1,10 +1,9 @@
 from freqtrade.strategy.interface import IStrategy
-from freqtrade.strategy.hyper import IHyperStrategy
 from pandas import DataFrame
 import talib.abstract as ta
 from freqtrade.optimize.space import Categorical, Real
 
-class Vrach_Ultimate_PRO(IStrategy, IHyperStrategy):
+class Vrach_Ultimate_PRO(IStrategy):
     INTERFACE_VERSION = 3
 
     timeframe = '5m'
