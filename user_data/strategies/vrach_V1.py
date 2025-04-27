@@ -31,6 +31,13 @@ class vrach_V1(IStrategy):
         dataframe['volume_mean'] = dataframe['volume'].rolling(30).mean()
         dataframe['percent_change'] = dataframe['close'].pct_change() * 100
     
+        # Konverzija u numeričke vrednosti
+        for column in ['close', 'ema50', 'ema200', 'rsi', 'atr', 'momentum', 'percent_change']:
+            dataframe[column] = pd.to_numeric(dataframe[column], errors='coerce')
+    
+        # Uklanjanje NaN vrednosti
+        dataframe.dropna(inplace=True)
+    
         # Bollinger Bands
         dataframe['bb_lower'], dataframe['bb_middle'], dataframe['bb_upper'] = ta.BBANDS(dataframe, timeperiod=20)
     
@@ -43,7 +50,7 @@ class vrach_V1(IStrategy):
         dataframe['ema50_slope'] = dataframe['ema50'] - dataframe['ema50'].shift(1)
     
         return dataframe
-    
+
     def populate_buy_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         dataframe.loc[
             (
