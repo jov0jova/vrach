@@ -45,22 +45,22 @@ class vrach_V1(IStrategy):
 
         return dataframe
 
-def populate_buy_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
-    dataframe.loc[
-        (
-            (dataframe['ema50'] > dataframe['ema200']) &  # EMA50 veća od EMA200 (bullish trend)
-            (dataframe['ema50_slope'] > 0) &  # EMA50 raste
-            (dataframe['rsi'] > 35) & (dataframe['rsi'] < 65) &  # RSI u normalnom opsegu
-            (dataframe['percent_change'] < -0.5) & (dataframe['percent_change'] > -3.0) &  # Promena cena u poslednjih nekoliko perioda
-            (dataframe['momentum'] > 0) &  # Pozitivan momentum
-            (dataframe['macd'] > dataframe['macdsignal']) &  # MACD linija je iznad signalne linije
-            (dataframe['macdhist'] > 0) &  # MACD histogram je pozitivan
-            (dataframe['stochrsi_k'] < 20) & (dataframe['stochrsi_d'] < 20) &  # StochRSI je u oversold zoni
-            (dataframe['volume'] > dataframe['volume_mean'] * 0.7)  # Volumen veći od prosečnog
-        ),
-        'buy'
-    ] = 1  # Postavi signal za kupovinu kada su svi uslovi ispunjeni
-    return dataframe
+    def populate_buy_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        dataframe.loc[
+            (
+                (dataframe['ema50'] > dataframe['ema200']) &  # EMA50 veća od EMA200 (bullish trend)
+                (dataframe['ema50_slope'] > 0) &  # EMA50 raste
+                (dataframe['rsi'] > 35) & (dataframe['rsi'] < 65) &  # RSI u normalnom opsegu
+                (dataframe['percent_change'] < -0.5) & (dataframe['percent_change'] > -3.0) &  # Promena cena u poslednjih nekoliko perioda
+                (dataframe['momentum'] > 0) &  # Pozitivan momentum
+                (dataframe['macd'] > dataframe['macdsignal']) &  # MACD linija je iznad signalne linije
+                (dataframe['macdhist'] > 0) &  # MACD histogram je pozitivan
+                (dataframe['stochrsi_k'] < 20) & (dataframe['stochrsi_d'] < 20) &  # StochRSI je u oversold zoni
+                (dataframe['volume'] > dataframe['volume_mean'] * 0.7)  # Volumen veći od prosečnog
+            ),
+            'buy'
+        ] = 1  # Postavi signal za kupovinu kada su svi uslovi ispunjeni
+        return dataframe
 
 
     def populate_sell_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
