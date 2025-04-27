@@ -1,60 +1,57 @@
 from freqtrade.strategy.interface import IStrategy
+from freqtrade.strategy.hyper import IHyperStrategy
 from pandas import DataFrame
 import talib.abstract as ta
+from freqtrade.optimize.space import Categorical, Real
 
-class Vrach_Ultimate_PRO_2(IStrategy):
+class Vrach_Ultimate_PRO(IStrategy, IHyperStrategy):
     INTERFACE_VERSION = 3
 
     timeframe = '5m'
-    inf_timeframe = '1h'  # koristimo i dodatni timeframe za bolji kontekst
 
     minimal_roi = {
-        "0": 0.03,   # Povećano jer ulazi sigurnije
-        "10": 0.015,
-        "30": 0
+        "0": 0.02,
+        "10": 0.01,
+        "20": 0
     }
 
-    stoploss = -0.02
+    stoploss = -0.015
 
     trailing_stop = True
-    trailing_stop_positive = 0.015
-    trailing_stop_positive_offset = 0.02
+    trailing_stop_positive = 0.01
+    trailing_stop_positive_offset = 0.015
     trailing_only_offset_is_reached = True
 
     use_custom_stoploss = False
-
     can_short = False
-
     process_only_new_candles = True
-    startup_candle_count: int = 300
+
+    @staticmethod
+    def hyperopt_parameters():
+        return {
+            'minimal_roi': {
+                '0': Real(0.01, 0.05),
+                '10': Real(0.005, 0.03),
+                '20': Real(0, 0.02),
+            },
+            'stoploss': Real(-0.05, -0.01),
+            'trailing_stop': Categorical([True, False]),
+            'trailing_stop_positive': Real(0.005, 0.04),
+            'trailing_stop_positive_offset': Real(0.01, 0.05),
+        }
 
     def informative_pairs(self):
-        return [("BTC/USDT", self.inf_timeframe)]
+        return [("BTC/USDT", "5m")]
 
     def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
-        # EMA
         dataframe['ema50'] = ta.EMA(dataframe, timeperiod=50)
         dataframe['ema200'] = ta.EMA(dataframe, timeperiod=200)
-
-        # RSI
         dataframe['rsi'] = ta.RSI(dataframe, timeperiod=14)
         dataframe['rsi_fast'] = ta.RSI(dataframe, timeperiod=5)
-
-        # Volume
-        dataframe['volume_mean_slow'] = dataframe['volume'].rolling(window=50).mean()
-
-        # Wick and body
+        dataframe['volume_mean_slow'] = dataframe['volume'].rolling(window=20).mean()
         dataframe['upper_wick'] = dataframe['high'] - dataframe[['close', 'open']].max(axis=1)
         dataframe['lower_wick'] = dataframe[['close', 'open']].min(axis=1) - dataframe['low']
         dataframe['body'] = abs(dataframe['close'] - dataframe['open'])
-
-        # Informative timeframe indicators (1h BTC/USDT market crash detection)
-        inf_df = self.dp.get_pair_dataframe(pair="BTC/USDT", timeframe=self.inf_timeframe)
-        if inf_df is not None:
-            inf_df['rsi_btc'] = ta.RSI(inf_df, timeperiod=14)
-            self.btc_rsi = inf_df['rsi_btc'].iloc[-1]
-            self.btc_pct_change = (inf_df['close'].iloc[-1] - inf_df['close'].iloc[-6]) / inf_df['close'].iloc[-6]
-
         return dataframe
 
     def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
@@ -67,23 +64,11 @@ class Vrach_Ultimate_PRO_2(IStrategy):
 
         scalping_signal = (
             (dataframe['rsi_fast'] < 30) &
-            (dataframe['volume'] > dataframe['volume_mean_slow'] * 2) &
-            (dataframe['close'] > dataframe['ema50'])
+            (dataframe['volume'] > dataframe['volume_mean_slow'] * 2)
         )
 
-        trend_reversal_signal = (
-            (dataframe['ema50'] > dataframe['ema200']) &
-            (dataframe['rsi_fast'] < 40) &
-            (dataframe['lower_wick'] > dataframe['body'])
-        )
-
-        # Kombinovani entry
         dataframe.loc[
-            (
-                (hammer_signal | scalping_signal | trend_reversal_signal) &
-                (~self.market_crash) &
-                (self.btc_rsi > 35)
-            ),
+            (hammer_signal | scalping_signal) & (~self.market_crash),
             'enter_long'
         ] = 1
 
@@ -91,17 +76,19 @@ class Vrach_Ultimate_PRO_2(IStrategy):
 
     def populate_exit_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         dataframe.loc[
-            (
-                (dataframe['close'] > dataframe['ema50']) &
-                (dataframe['rsi'] > 60)
-            ),
+            (dataframe['close'] > dataframe['ema50']) |
+            (dataframe['rsi'] > 60),
             'exit_long'
         ] = 1
         return dataframe
 
     @property
     def market_crash(self) -> bool:
-        try:
-            return self.btc_pct_change < -0.02
-        except AttributeError:
-            return False
+        btc_df = self.dp.get_pair_dataframe(pair="BTC/USDT", timeframe="5m")
+        if btc_df is not None and len(btc_df) > 5:
+            last_close = btc_df['close'].iloc[-1]
+            prev_close = btc_df['close'].iloc[-5]
+            change = (last_close - prev_close) / prev_close
+            if change < -0.02:
+                return True
+        return False
