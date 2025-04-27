@@ -36,26 +36,7 @@
         "ccxt_config": {},
         "ccxt_async_config": {
         },
-        "pair_whitelist": [
-            "ALGO/USDT",
-            "ATOM/USDT",
-            "BAT/USDT",
-            "BCH/USDT",
-            "BRD/USDT",
-            "EOS/USDT",
-            "ETH/USDT",
-            "IOTA/USDT",
-            "LINK/USDT",
-            "LTC/USDT",
-            "NEO/USDT",
-            "NXS/USDT",
-            "XMR/USDT",
-            "XRP/USDT",
-            "XTZ/USDT"
-        ],
-        "pair_blacklist": [
-            "BNB/.*"
-        ]
+
     },
     "pairlists": [
         {"method": "StaticPairList"}
