@@ -1,4 +1,5 @@
-  "strategy": "vrach_V1",
+{
+"strategy": "vrach_V1",
   "add_config_files": [
     "trading_mode.json",
     "whitelist.json",
