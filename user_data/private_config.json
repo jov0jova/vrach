@@ -28,8 +28,7 @@
     "walletAddress": "",
     "privateKey": "",
     "ccxt_config": {},
-    "ccxt_async_config": {},
-    "pair_whitelist": []
+    "ccxt_async_config": {}
   },
   "telegram": {
     "enabled": false,
