@@ -1,73 +1,97 @@
-# --- Imporţi
-from freqtrade.strategy import IStrategy, IntParameter, DecimalParameter
-import pandas as pd
-import numpy as np
+from freqtrade.strategy.interface import IStrategy
+from pandas import DataFrame
 import talib.abstract as ta
+from freqtrade.optimize.space import Categorical, Real
 
 class Vrach_Ultimate_PRO(IStrategy):
     INTERFACE_VERSION = 3
 
-    # Optimizacija
-    peak_pullback_lookback = IntParameter(5, 50, default=20, space="buy")
-    pullback_amount = DecimalParameter(0.001, 0.05, default=0.02, decimals=3, space="sell")
-
-    # Config Settings
     timeframe = '5m'
+
     minimal_roi = {
-        "0": 0.012  # Samo 1% minimum (manje očekivanje kad nema mnogo exit indikatora)
+        "0": 0.02,
+        "10": 0.01,
+        "20": 0
     }
-    stoploss = -0.99  # Hard stoploss
-    trailing_stop = False  # Mi koristimo custom trailing
 
+    stoploss = -0.015
+
+    trailing_stop = True
+    trailing_stop_positive = 0.01
+    trailing_stop_positive_offset = 0.015
+    trailing_only_offset_is_reached = True
+
+    use_custom_stoploss = False
+    can_short = False
     process_only_new_candles = True
-    use_custom_exit = True
 
-    def populate_indicators(self, dataframe: pd.DataFrame, metadata: dict) -> pd.DataFrame:
+    @staticmethod
+    def hyperopt_parameters():
+        return {
+            'minimal_roi': {
+                '0': Real(0.01, 0.05),
+                '10': Real(0.005, 0.03),
+                '20': Real(0, 0.02),
+            },
+            'stoploss': Real(-0.05, -0.01),
+            'trailing_stop': Categorical([True, False]),
+            'trailing_stop_positive': Real(0.005, 0.04),
+            'trailing_stop_positive_offset': Real(0.01, 0.05),
+        }
+
+    def informative_pairs(self):
+        return [("BTC/USDT", "5m")]
+
+    def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        dataframe['ema50'] = ta.EMA(dataframe, timeperiod=50)
+        dataframe['ema200'] = ta.EMA(dataframe, timeperiod=200)
         dataframe['rsi'] = ta.RSI(dataframe, timeperiod=14)
-        dataframe['ema_fast'] = ta.EMA(dataframe, timeperiod=12)
-        dataframe['ema_slow'] = ta.EMA(dataframe, timeperiod=26)
-        dataframe['atr'] = ta.ATR(dataframe, timeperiod=14)
+        dataframe['rsi_fast'] = ta.RSI(dataframe, timeperiod=5)
+        dataframe['volume_mean_slow'] = dataframe['volume'].rolling(window=20).mean()
+        dataframe['upper_wick'] = dataframe['high'] - dataframe[['close', 'open']].max(axis=1)
+        dataframe['lower_wick'] = dataframe[['close', 'open']].min(axis=1) - dataframe['low']
+        dataframe['body'] = abs(dataframe['close'] - dataframe['open'])
+        return dataframe
+
+    def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        hammer_signal = (
+            (dataframe['close'] < dataframe['ema200']) &
+            (dataframe['rsi'] < 35) &
+            (dataframe['volume'] > dataframe['volume_mean_slow'] * 1.5) &
+            (dataframe['lower_wick'] > dataframe['body'] * 1.5)
+        )
+
+        scalping_signal = (
+            (dataframe['rsi_fast'] < 30) &
+            (dataframe['volume'] > dataframe['volume_mean_slow'] * 2)
+        )
+
+        dataframe.loc[
+            (hammer_signal | scalping_signal) & (~self.market_crash),
+            'enter_long'
+        ] = 1
 
         return dataframe
 
-    def populate_entry_trend(self, dataframe: pd.DataFrame, metadata: dict) -> pd.DataFrame:
+    def populate_exit_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         dataframe.loc[
-            (
-                (dataframe['ema_fast'] > dataframe['ema_slow']) &
-                (dataframe['rsi'] < 70) &
-                (dataframe['close'] > dataframe['ema_fast'])
-            ),
-            'enter_long'
+            (dataframe['close'] > dataframe['ema50']) |
+            (dataframe['rsi'] > 60),
+            'exit_long'
         ] = 1
         return dataframe
 
-    def populate_exit_trend(self, dataframe: pd.DataFrame, metadata: dict) -> pd.DataFrame:
-        dataframe['exit_long'] = 0  # Ne koristimo standardni exit
-        return dataframe
-
-    def custom_exit(self, pair: str, trade, current_time: 'datetime', current_rate: float,
-                    current_profit: float, **kwargs):
-        """
-        Custom exit koji hvata najviši peak, čeka pullback, i tada izlazi.
-        """
-
-        # Učitaj prošle profita
-        trade_custom = trade.custom_exit_info or {}
-
-        # Ako nemamo podatke, inicijalizuj
-        if not trade_custom:
-            trade_custom['peak_profit'] = current_profit
-            return None  # Ne izlazimo odmah
-
-        # Ako imamo, updejtuj maksimalni peak
-        if current_profit > trade_custom['peak_profit']:
-            trade_custom['peak_profit'] = current_profit
-
-        # Ako je profit pao za pullback_amount od peaka - izlazimo
-        pullback_trigger = self.pullback_amount.value
-        if current_profit <= (trade_custom['peak_profit'] - pullback_trigger):
-            return "peak-pullback-exit"
-
-        # Ako nismo još pala dovoljno, ostani unutra
-        trade.update_custom_exit_info(trade_custom)
-        return None
+    @property
+    def market_crash(self) -> bool:
+        btc_df = self.dp.get_pair_dataframe(pair="BTC/USDT", timeframe="5m")
+        if btc_df is not None and len(btc_df) > 5:
+            last_close = btc_df['close'].iloc[-1]
+            prev_close = btc_df['close'].iloc[-5]
+            change = (last_close - prev_close) / prev_close
+            if change < -0.02:
+                return True
+        return False
+		
+		
+		
+		
