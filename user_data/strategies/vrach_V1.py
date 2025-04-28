@@ -2,6 +2,8 @@ from freqtrade.strategy.interface import IStrategy
 from pandas import DataFrame
 import talib.abstract as ta
 from freqtrade.optimize.space import Categorical, Real
+from freqtrade.persistence import Trade
+from datetime import datetime
 
 class Vrach_Ultimate_PRO(IStrategy):
     INTERFACE_VERSION = 3
@@ -9,13 +11,13 @@ class Vrach_Ultimate_PRO(IStrategy):
     timeframe = '5m'
 
     minimal_roi = {
-        "480": 0.02,  # 8 sati (8 * 60 minuta) -> 2% ROI
-        "240": 0.014, # 4 sata (4 * 60 minuta) -> 1.4% ROI
-        "60": 0.007,  # 1 sat (1 * 60 minuta) -> 0.7% ROI
-        "0": 0.005    # Podrazumevani ROI ako nijedan od gornjih vremenskih okvira nije dostignut
+        "480": 0.02,
+        "240": 0.014,
+        "60": 0.007,
+        "0": 0.005
     }
 
-    stoploss = -0.015
+    stoploss = -0.10
 
     trailing_stop = True
     trailing_stop_positive = 0.01
@@ -34,24 +36,21 @@ class Vrach_Ultimate_PRO(IStrategy):
                 '10': Real(0.01, 0.05),
                 '20': Real(0, 0.03),
             },
-            'stoploss': Real(-0.05, -0.01),
+            'stoploss': Real(-0.10, -0.05),
             'trailing_stop': Categorical([True, False]),
             'trailing_stop_positive': Real(0.01, 0.08),
             'trailing_stop_positive_offset': Real(0.015, 0.1),
-            # Hyperopt parametri za EMA periode
             'ema50_period': Categorical([30, 50, 75, 100]),
             'ema200_period': Categorical([150, 200, 250, 300]),
-            # Hyperopt parametri za RSI pragove za ulazak
             'rsi_entry': Categorical([30, 35, 40]),
             'rsi_fast_entry': Categorical([25, 30, 35]),
-            # Hyperopt parametri za RSI pragove za izlazak
             'rsi_exit': Categorical([60, 65, 70]),
             'rsi_peak_exit_high': Categorical([70, 75, 80, 85]),
             'rsi_peak_exit_low': Categorical([75, 80, 85, 90]),
         }
 
     def informative_pairs(self):
-        return [("BTC/USDT", "5m")]
+        return []
 
     def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         dataframe['ema50'] = ta.EMA(dataframe, timeperiod=50)
@@ -62,9 +61,16 @@ class Vrach_Ultimate_PRO(IStrategy):
         dataframe['upper_wick'] = dataframe['high'] - dataframe[['close', 'open']].max(axis=1)
         dataframe['lower_wick'] = dataframe[['close', 'open']].min(axis=1) - dataframe['low']
         dataframe['body'] = abs(dataframe['close'] - dataframe['open'])
-
-        # Dodajemo RSI za prethodni period za detekciju divergencije
         dataframe['rsi_prev'] = dataframe['rsi'].shift(1)
+
+        dataframe['daily_range'] = dataframe['high'] - dataframe['low']
+        dataframe['adr'] = dataframe['daily_range'].rolling(window=288).mean()
+
+        # Dinamički threshold za ADR
+        dataframe['adr_volatility'] = dataframe['daily_range'].rolling(window=288).std()
+        dataframe['adr_mean'] = dataframe['daily_range'].rolling(window=288).mean()
+        dataframe['dynamic_adr_threshold'] = 0.85 + (dataframe['adr_volatility'] / dataframe['adr_mean']) * 0.5
+
         return dataframe
 
     def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
@@ -80,38 +86,33 @@ class Vrach_Ultimate_PRO(IStrategy):
             (dataframe['volume'] > dataframe['volume_mean_slow'] * 2)
         )
 
+        adr_filter = (
+            (dataframe['adr'].notnull()) &
+            (dataframe['daily_range'] > dataframe['adr'] * dataframe['dynamic_adr_threshold'])
+        )
+
         dataframe.loc[
-            (hammer_signal | scalping_signal) & (~self.market_crash),
+            (hammer_signal | scalping_signal) & adr_filter,
             'enter_long'
         ] = 1
 
         return dataframe
 
     def populate_exit_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
-        # Uslovi za izlazak bazirani na potencijalnom vrhuncu
         peak_exit_condition = (
-            (dataframe['close'] < dataframe['close'].shift(1)) &  # Cena pala u odnosu na prethodnu svecu
-            (dataframe['rsi'] > 68)  # RSI je u prekupljenoj zoni
+            (dataframe['close'] < dataframe['close'].shift(1)) & 
+            (dataframe['rsi'] > 68)
         ) | (
-            (dataframe['rsi'] > 66) & (dataframe['rsi'] < dataframe['rsi_prev']) # RSI opada iz ekstremne prekupljenosti
+            (dataframe['rsi'] > 66) & (dataframe['rsi'] < dataframe['rsi_prev'])
         )
 
-        # Dodajemo i originalne uslove za izlazak, ali sa manjim prioritetom
-        original_exit_condition = (dataframe['close'] > dataframe['ema50']) | (dataframe['rsi'] > 60)
+        original_exit_condition = (
+            (dataframe['close'] > dataframe['ema50']) | (dataframe['rsi'] > 60)
+        )
 
         dataframe.loc[
-            peak_exit_condition | (original_exit_condition & (dataframe['rsi'] > 78)), # Blago pooštravanje originalnog RSI uslova
+            peak_exit_condition | (original_exit_condition & (dataframe['rsi'] > 78)),
             'exit_long'
         ] = 1
-        return dataframe
 
-    @property
-    def market_crash(self) -> bool:
-        btc_df = self.dp.get_pair_dataframe(pair="BTC/USDT", timeframe="5m")
-        if btc_df is not None and len(btc_df) > 5:
-            last_close = btc_df['close'].iloc[-1]
-            prev_close = btc_df['close'].iloc[-5]
-            change = (last_close - prev_close) / prev_close
-            if change < -0.02:
-                return True
-        return False
+        return dataframe
