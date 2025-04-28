@@ -9,9 +9,10 @@ class Vrach_Ultimate_PRO(IStrategy):
     timeframe = '5m'
 
     minimal_roi = {
-        "0": 0.02,
-        "10": 0.01,
-        "20": 0
+        "480": 0.02,  # 8 sati (8 * 60 minuta) -> 2% ROI
+        "240": 0.014, # 4 sata (4 * 60 minuta) -> 1.4% ROI
+        "60": 0.007,  # 1 sat (1 * 60 minuta) -> 0.7% ROI
+        "0": 0.005    # Podrazumevani ROI ako nijedan od gornjih vremenskih okvira nije dostignut
     }
 
     stoploss = -0.015
@@ -90,7 +91,7 @@ class Vrach_Ultimate_PRO(IStrategy):
         # Uslovi za izlazak bazirani na potencijalnom vrhuncu
         peak_exit_condition = (
             (dataframe['close'] < dataframe['close'].shift(1)) &  # Cena pala u odnosu na prethodnu svecu
-            (dataframe['rsi'] > 70)  # RSI je u prekupljenoj zoni
+            (dataframe['rsi'] > 68)  # RSI je u prekupljenoj zoni
         ) | (
             (dataframe['rsi'] > 80) & (dataframe['rsi'] < dataframe['rsi_prev']) # RSI opada iz ekstremne prekupljenosti
         )
@@ -99,7 +100,7 @@ class Vrach_Ultimate_PRO(IStrategy):
         original_exit_condition = (dataframe['close'] > dataframe['ema50']) | (dataframe['rsi'] > 60)
 
         dataframe.loc[
-            peak_exit_condition | (original_exit_condition & (dataframe['rsi'] > 65)), # Blago pooštravanje originalnog RSI uslova
+            peak_exit_condition | (original_exit_condition & (dataframe['rsi'] > 78)), # Blago pooštravanje originalnog RSI uslova
             'exit_long'
         ] = 1
         return dataframe
