@@ -71,6 +71,8 @@ class Vrach_Ultimate_PRO(IStrategy):
         dataframe['adr_mean'] = dataframe['daily_range'].rolling(window=288).mean()
         dataframe['dynamic_adr_threshold'] = 0.85 + (dataframe['adr_volatility'] / dataframe['adr_mean']) * 0.5
 
+        dataframe['rsi_min_288'] = dataframe['rsi'].rolling(window=288).min()
+
         return dataframe
 
     def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
@@ -90,12 +92,14 @@ class Vrach_Ultimate_PRO(IStrategy):
             (dataframe['adr'].notnull()) &
             (dataframe['daily_range'] > dataframe['adr'] * dataframe['dynamic_adr_threshold'])
         )
-
+        rsi_super_low = (
+            (dataframe['rsi'] < dataframe['rsi_min_288'] * 0.9)
+        )
+        
         dataframe.loc[
-            (hammer_signal | scalping_signal) & adr_filter,
+            ((hammer_signal | scalping_signal | rsi_super_low) & adr_filter),
             'enter_long'
         ] = 1
-
         return dataframe
 
     def populate_exit_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
