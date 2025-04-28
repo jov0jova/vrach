@@ -5,7 +5,6 @@ from freqtrade.optimize.space import Categorical, Real
 
 class Vrach_Ultimate_PRO(IStrategy):
     INTERFACE_VERSION = 3
-
     timeframe = '5m'
 
     minimal_roi = {
@@ -15,7 +14,6 @@ class Vrach_Ultimate_PRO(IStrategy):
     }
 
     stoploss = -0.05
-
     trailing_stop = True
     trailing_stop_positive = 0.01
     trailing_stop_positive_offset = 0.05
@@ -25,22 +23,8 @@ class Vrach_Ultimate_PRO(IStrategy):
     can_short = False
     process_only_new_candles = True
 
-    @staticmethod
-    def hyperopt_parameters():
-        return {
-            'minimal_roi': {
-                '0': Real(0.01, 0.05),
-                '10': Real(0.005, 0.03),
-                '20': Real(0, 0.02),
-            },
-            'stoploss': Real(-0.05, -0.01),
-            'trailing_stop': Categorical([True, False]),
-            'trailing_stop_positive': Real(0.005, 0.04),
-            'trailing_stop_positive_offset': Real(0.01, 0.05),
-        }
-
-    def informative_pairs(self):
-        return [("BTC/USDT", "5m")]
+    def __init__(self):
+        self.peak_candles = []
 
     def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         dataframe['ema50'] = ta.EMA(dataframe, timeperiod=50)
@@ -51,8 +35,26 @@ class Vrach_Ultimate_PRO(IStrategy):
         dataframe['upper_wick'] = dataframe['high'] - dataframe[['close', 'open']].max(axis=1)
         dataframe['lower_wick'] = dataframe[['close', 'open']].min(axis=1) - dataframe['low']
         dataframe['body'] = abs(dataframe['close'] - dataframe['open'])
-        return dataframe
 
+        self._identify_peak_candles(dataframe)
+        
+        return dataframe
+	    
+    def _identify_peak_candles(self, dataframe: DataFrame):
+        # Consider candles with the highest close in the last 10 candles as "peak" candles
+        window_size = 10
+        peak_window = dataframe['close'].rolling(window=window_size).max()
+        peak_candles = dataframe[dataframe['close'] == peak_window]
+
+        for _, row in peak_candles.iterrows():
+            # Store the RSI and EMA values when a peak candle is identified
+            self.peak_candles.append({
+                'timestamp': row.name,
+                'rsi': row['rsi'],
+                'ema50': row['ema50'],
+                'ema200': row['ema200']
+            })
+		
     def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         hammer_signal = (
             (dataframe['close'] < dataframe['ema200']) &
@@ -74,11 +76,20 @@ class Vrach_Ultimate_PRO(IStrategy):
         return dataframe
 
     def populate_exit_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
-        dataframe.loc[
-            (dataframe['close'] > dataframe['ema50']) |
-            (dataframe['rsi'] > 60),
-            'exit_long'
-        ] = 1
+        for peak in self.peak_candles:
+            # Calculate 90% of peak RSI and EMA values
+            rsi_threshold = peak['rsi'] * 0.90
+            ema50_threshold = peak['ema50'] * 0.90
+            ema200_threshold = peak['ema200'] * 0.90
+
+            # Exit if current RSI is above 90% of the peak RSI and price is near the 90% threshold
+            dataframe.loc[
+                (dataframe['close'] > ema50_threshold) & 
+                (dataframe['rsi'] > rsi_threshold) & 
+                (dataframe['ema50'] > ema50_threshold),
+                'exit_long'
+            ] = 1
+
         return dataframe
 
     @property
