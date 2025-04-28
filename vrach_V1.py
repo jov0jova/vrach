@@ -9,16 +9,16 @@ class Vrach_Ultimate_PRO(IStrategy):
     timeframe = '5m'
 
     minimal_roi = {
-        "0": 0.02,
-        "10": 0.01,
-        "20": 0
+        "0": 0.03,
+        "10": 0.015,
+        "20": 0.005
     }
 
-    stoploss = -0.015
+    stoploss = -0.05
 
     trailing_stop = True
-    trailing_stop_positive = 0.01
-    trailing_stop_positive_offset = 0.015
+    trailing_stop_positive = 0.015
+    trailing_stop_positive_offset = 0.03
     trailing_only_offset_is_reached = True
 
     use_custom_stoploss = False
@@ -73,13 +73,19 @@ class Vrach_Ultimate_PRO(IStrategy):
 
         return dataframe
 
-    def populate_exit_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
-        dataframe.loc[
-            (dataframe['close'] > dataframe['ema50']) |
-            (dataframe['rsi'] > 60),
-            'exit_long'
-        ] = 1
-        return dataframe
+
+    def populate_exit_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        # Initialize peak tracking
+        dataframe['peak_price'] = dataframe['close'].cummax()
+        dataframe['peak_rsi'] = dataframe['rsi'].cummax()
+
+        # Define exit conditions based on peak tracking
+        dataframe.loc[
+            (dataframe['close'] < dataframe['peak_price'] * 0.95) |
+            (dataframe['rsi'] < dataframe['peak_rsi'] * 0.90),
+            'exit_long'] = 1
+
+        return dataframe
 
     @property
     def market_crash(self) -> bool:
