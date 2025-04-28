@@ -24,7 +24,24 @@ class Vrach_Ultimate_PRO(IStrategy):
     process_only_new_candles = True
 
     def __init__(self):
+        # List to store peak candles' RSI, EMA50, and EMA200 values
         self.peak_candles = []
+
+    def hyperopt_parameters(self):
+        return {
+            'minimal_roi': {
+                '0': Real(0.01, 0.05),
+                '10': Real(0.005, 0.03),
+                '20': Real(0, 0.02),
+            },
+            'stoploss': Real(-0.05, -0.01),
+            'trailing_stop': Categorical([True, False]),
+            'trailing_stop_positive': Real(0.005, 0.04),
+            'trailing_stop_positive_offset': Real(0.01, 0.05),
+        }
+
+    def informative_pairs(self):
+        return [("BTC/USDT", "5m")]
 
     def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         dataframe['ema50'] = ta.EMA(dataframe, timeperiod=50)
@@ -36,25 +53,26 @@ class Vrach_Ultimate_PRO(IStrategy):
         dataframe['lower_wick'] = dataframe[['close', 'open']].min(axis=1) - dataframe['low']
         dataframe['body'] = abs(dataframe['close'] - dataframe['open'])
 
+        # Identify peak candles
         self._identify_peak_candles(dataframe)
         
         return dataframe
-	    
+
     def _identify_peak_candles(self, dataframe: DataFrame):
         # Consider candles with the highest close in the last 10 candles as "peak" candles
         window_size = 10
         peak_window = dataframe['close'].rolling(window=window_size).max()
         peak_candles = dataframe[dataframe['close'] == peak_window]
 
+        # Store peak candles' RSI, EMA50, and EMA200 values
         for _, row in peak_candles.iterrows():
-            # Store the RSI and EMA values when a peak candle is identified
             self.peak_candles.append({
                 'timestamp': row.name,
                 'rsi': row['rsi'],
                 'ema50': row['ema50'],
                 'ema200': row['ema200']
             })
-		
+
     def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         hammer_signal = (
             (dataframe['close'] < dataframe['ema200']) &
@@ -69,7 +87,7 @@ class Vrach_Ultimate_PRO(IStrategy):
         )
 
         dataframe.loc[
-            (hammer_signal | scalping_signal) & (~self.market_crash),
+            (hammer_signal | scalping_signal),
             'enter_long'
         ] = 1
 
@@ -102,7 +120,3 @@ class Vrach_Ultimate_PRO(IStrategy):
             if change < -0.02:
                 return True
         return False
-		
-		
-		
-		
