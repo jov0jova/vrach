@@ -4,7 +4,7 @@ import talib.abstract as ta
 
 class Vrach_Ultimate_REALTIME(IStrategy):
     INTERFACE_VERSION = 3
-    timeframe = '5m'  # ili neki drugi interval koji ti odgovara
+    timeframe = '5m'  # Koristimo 5-minutni interval
 
     minimal_roi = {
         "0": 0.05,
@@ -23,7 +23,8 @@ class Vrach_Ultimate_REALTIME(IStrategy):
     process_only_new_candles = True
 
     def informative_pairs(self):
-        return [("BTC/USDT", "240m")]  # Dodajemo 4h timeframe za informativne parove
+        # Uklonili smo informativne parove vezane za 4h time frame
+        return []
 
     def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         dataframe['ema50'] = ta.EMA(dataframe, timeperiod=50)
@@ -35,14 +36,13 @@ class Vrach_Ultimate_REALTIME(IStrategy):
         dataframe['lower_wick'] = dataframe[['close', 'open']].min(axis=1) - dataframe['low']
         dataframe['body'] = abs(dataframe['close'] - dataframe['open'])
         
-        # Dodajemo logiku za praćenje 4-satnih sveća
-        if 'BTC/USDT_240m' in dataframe.columns:
-            self._identify_peak_candle(dataframe['BTC/USDT_240m'])
+        # Analiza poslednjih 24 sveća
+        self._identify_peak_candle(dataframe)
         
         return dataframe
 
     def _identify_peak_candle(self, dataframe: DataFrame):
-        # Gledamo poslednjih 5 sveća na 4h timeframe
+        # Gledamo poslednjih 24 sveće na 5m time frame-u
         recent_candles = dataframe.iloc[-24:]
 
         # Na osnovu maksimalnog zatvaranja pronalazimo "peak" sveću
@@ -82,8 +82,8 @@ class Vrach_Ultimate_REALTIME(IStrategy):
 
             # Izlazimo ako je trenutni RSI i EMA iznad 90% peak vrednosti
             dataframe.loc[
-                (dataframe['rsi'] > rsi_threshold) &
-                (dataframe['ema50'] > ema50_threshold) &
+                (dataframe['rsi'] > rsi_threshold) & 
+                (dataframe['ema50'] > ema50_threshold) & 
                 (dataframe['close'] > ema50_threshold),
                 'exit_long'
             ] = 1
