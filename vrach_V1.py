@@ -39,7 +39,7 @@ class Vrach_Ultimate_PRO(IStrategy):
         }
 
     def informative_pairs(self):
-        return [("BTC/USDT", "5m")]
+        return [("BTC/USDT", "5m"), ("BTC/USDT", "240m")]  # Added 4H timeframe
 
     def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         dataframe['ema50'] = ta.EMA(dataframe, timeperiod=50)
@@ -51,25 +51,28 @@ class Vrach_Ultimate_PRO(IStrategy):
         dataframe['lower_wick'] = dataframe[['close', 'open']].min(axis=1) - dataframe['low']
         dataframe['body'] = abs(dataframe['close'] - dataframe['open'])
 
-        # Identify peak candles
+        # Identify peak candles in 4-hour timeframe
         self._identify_peak_candles(dataframe)
         
         return dataframe
 
     def _identify_peak_candles(self, dataframe: DataFrame):
-        # Consider candles with the highest close in the last 10 candles as "peak" candles
-        window_size = 10
-        peak_window = dataframe['close'].rolling(window=window_size).max()
-        peak_candles = dataframe[dataframe['close'] == peak_window]
+        # Fetch the 4-hour timeframe data for more significant trend analysis
+        btc_4h_df = self.dp.get_pair_dataframe(pair="BTC/USDT", timeframe="240m")
 
-        # Store peak candles' RSI, EMA50, and EMA200 values
-        for _, row in peak_candles.iterrows():
-            self.peak_candles.append({
-                'timestamp': row.name,
-                'rsi': row['rsi'],
-                'ema50': row['ema50'],
-                'ema200': row['ema200']
-            })
+        if btc_4h_df is not None:
+            # Consider candles with the highest close in the last 5 peaks (4-hour candles)
+            peak_window = btc_4h_df['close'].rolling(window=5).max()
+            peak_candles = btc_4h_df[btc_4h_df['close'] == peak_window]
+
+            # Store peak candles' RSI, EMA50, and EMA200 values
+            for _, row in peak_candles.iterrows():
+                self.peak_candles.append({
+                    'timestamp': row.name,
+                    'rsi': row['rsi'],
+                    'ema50': row['ema50'],
+                    'ema200': row['ema200']
+                })
 
     def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         hammer_signal = (
