@@ -72,8 +72,8 @@
     "enable_openapi": false,
     "jwt_secret_key": "",
     "CORS_origins": [""],
-    "username": "",
-    "password": ""
+    "username": "user",
+    "password": "password"
   },
 
   "initial_state": "running",
