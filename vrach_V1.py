@@ -22,10 +22,6 @@ class Vrach_Ultimate_REALTIME(IStrategy):
     can_short = False
     process_only_new_candles = True
 
-    def informative_pairs(self):
-        # Uklonili smo informativne parove vezane za 4h time frame
-        return []
-
     def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         dataframe['ema50'] = ta.EMA(dataframe, timeperiod=50)
         dataframe['ema200'] = ta.EMA(dataframe, timeperiod=200)
@@ -43,7 +39,7 @@ class Vrach_Ultimate_REALTIME(IStrategy):
 
     def _identify_peak_candle(self, dataframe: DataFrame):
         # Gledamo poslednjih 24 sveće na 5m time frame-u
-        recent_candles = dataframe.iloc[-24:]
+        recent_candles = dataframe.tail(24)  # koristimo tail da bismo uzeli poslednjih 24 reda
 
         # Na osnovu maksimalnog zatvaranja pronalazimo "peak" sveću
         peak_candle = recent_candles.loc[recent_candles['close'].idxmax()]
