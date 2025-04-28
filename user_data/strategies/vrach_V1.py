@@ -23,9 +23,7 @@ class Vrach_Ultimate_PRO(IStrategy):
     can_short = False
     process_only_new_candles = True
 
-    def __init__(self):
-        # List to store peak candles' RSI, EMA50, and EMA200 values
-        self.peak_candles = []
+    peak_candles = []  # List to store peak candle parameters
 
     def hyperopt_parameters(self):
         return {
