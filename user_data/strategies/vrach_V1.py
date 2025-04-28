@@ -2,7 +2,6 @@ from freqtrade.strategy.interface import IStrategy
 from pandas import DataFrame
 import talib.abstract as ta
 from freqtrade.optimize.space import Categorical, Real
-import numpy as np
 
 class Vrach_Ultimate_PRO(IStrategy):
     INTERFACE_VERSION = 3
@@ -22,7 +21,7 @@ class Vrach_Ultimate_PRO(IStrategy):
     trailing_stop_positive_offset = 0.015
     trailing_only_offset_is_reached = True
 
-    use_custom_stoploss = True
+    use_custom_stoploss = False
     can_short = False
     process_only_new_candles = True
 
@@ -30,17 +29,24 @@ class Vrach_Ultimate_PRO(IStrategy):
     def hyperopt_parameters():
         return {
             'minimal_roi': {
-                '0': Real(0.01, 0.05),
-                '10': Real(0.005, 0.03),
-                '20': Real(0, 0.02),
+                '0': Real(0.02, 0.1),
+                '10': Real(0.01, 0.05),
+                '20': Real(0, 0.03),
             },
             'stoploss': Real(-0.05, -0.01),
             'trailing_stop': Categorical([True, False]),
-            'trailing_stop_positive': Real(0.005, 0.08),
-            'trailing_stop_positive_offset': Real(0.01, 0.08),
-            'exit_rsi_threshold': Real(65, 85),
-            'atr_multiplier_sl': Real(1.0, 3.0),
-            'atr_multiplier_tp': Real(2.0, 5.0),
+            'trailing_stop_positive': Real(0.01, 0.08),
+            'trailing_stop_positive_offset': Real(0.015, 0.1),
+            # Hyperopt parametri za EMA periode
+            'ema50_period': Categorical([30, 50, 75, 100]),
+            'ema200_period': Categorical([150, 200, 250, 300]),
+            # Hyperopt parametri za RSI pragove za ulazak
+            'rsi_entry': Categorical([30, 35, 40]),
+            'rsi_fast_entry': Categorical([25, 30, 35]),
+            # Hyperopt parametri za RSI pragove za izlazak
+            'rsi_exit': Categorical([60, 65, 70]),
+            'rsi_peak_exit_high': Categorical([70, 75, 80, 85]),
+            'rsi_peak_exit_low': Categorical([75, 80, 85, 90]),
         }
 
     def informative_pairs(self):
@@ -49,16 +55,15 @@ class Vrach_Ultimate_PRO(IStrategy):
     def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         dataframe['ema50'] = ta.EMA(dataframe, timeperiod=50)
         dataframe['ema200'] = ta.EMA(dataframe, timeperiod=200)
-        dataframe['ema9'] = ta.EMA(dataframe, timeperiod=9)
         dataframe['rsi'] = ta.RSI(dataframe, timeperiod=14)
         dataframe['rsi_fast'] = ta.RSI(dataframe, timeperiod=5)
-        dataframe['atr'] = ta.ATR(dataframe, timeperiod=14)
-        atr_rolling_avg = dataframe['atr'].rolling(window=50).mean()
-        dataframe['is_high_volatility'] = dataframe['atr'] > atr_rolling_avg * 1.5
         dataframe['volume_mean_slow'] = dataframe['volume'].rolling(window=20).mean()
         dataframe['upper_wick'] = dataframe['high'] - dataframe[['close', 'open']].max(axis=1)
         dataframe['lower_wick'] = dataframe[['close', 'open']].min(axis=1) - dataframe['low']
         dataframe['body'] = abs(dataframe['close'] - dataframe['open'])
+
+        # Dodajemo RSI za prethodni period za detekciju divergencije
+        dataframe['rsi_prev'] = dataframe['rsi'].shift(1)
         return dataframe
 
     def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
@@ -82,28 +87,22 @@ class Vrach_Ultimate_PRO(IStrategy):
         return dataframe
 
     def populate_exit_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        # Uslovi za izlazak bazirani na potencijalnom vrhuncu
+        peak_exit_condition = (
+            (dataframe['close'] < dataframe['close'].shift(1)) &  # Cena pala u odnosu na prethodnu svecu
+            (dataframe['rsi'] > 70)  # RSI je u prekupljenoj zoni
+        ) | (
+            (dataframe['rsi'] > 80) & (dataframe['rsi'] < dataframe['rsi_prev']) # RSI opada iz ekstremne prekupljenosti
+        )
+
+        # Dodajemo i originalne uslove za izlazak, ali sa manjim prioritetom
+        original_exit_condition = (dataframe['close'] > dataframe['ema50']) | (dataframe['rsi'] > 60)
+
         dataframe.loc[
-            (dataframe['close'] > dataframe['ema50']) |
-            (dataframe['rsi'] > self.dp.runmode.get('exit_rsi_threshold', 75)),
+            peak_exit_condition | (original_exit_condition & (dataframe['rsi'] > 65)), # Blago pooštravanje originalnog RSI uslova
             'exit_long'
         ] = 1
         return dataframe
-
-    def custom_stoploss(self, pair: str, trade: 'Trade', current_time: 'datetime', current_rate: float, current_profit: float, **kwargs) -> float:
-        dataframe, _ = self.dp.get_pair_dataframe(pair=pair, timeframe=self.timeframe)
-        if dataframe is not None and not dataframe.empty:
-            last_atr = dataframe['atr'].iloc[-1]
-            return current_rate - (last_atr * self.dp.runmode.get('atr_multiplier_sl', 2.0))
-        return -0.05 # Fallback stoploss if ATR is not available
-
-    def custom_exit(self, pair: str, trade: 'Trade', current_time: 'datetime', current_rate: float, current_profit: float, **kwargs):
-        dataframe, _ = self.dp.get_pair_dataframe(pair=pair, timeframe=self.timeframe)
-        if dataframe is not None and not dataframe.empty:
-            last_atr = dataframe['atr'].iloc[-1]
-            take_profit_level = trade.open_rate + (last_atr * self.dp.runmode.get('atr_multiplier_tp', 3.0))
-            if current_rate >= take_profit_level:
-                return 'atr_take_profit'
-        return None
 
     @property
     def market_crash(self) -> bool:
@@ -115,19 +114,3 @@ class Vrach_Ultimate_PRO(IStrategy):
             if change < -0.02:
                 return True
         return False
-
-    def dynamic_roi(self) -> dict:
-        dataframe, _ = self.dp.get_pair_dataframe(pair=self.config['stake_currency'] + '/USDT', timeframe=self.timeframe)
-        if dataframe is not None and not dataframe.empty:
-            last_atr = dataframe['atr'].iloc[-1]
-            # Adjust ROI based on ATR. Higher volatility (higher ATR) might allow for higher ROI targets.
-            return {
-                "0": min(0.02 + (last_atr * 10), 0.08),  # Example: Base ROI + ATR factor
-                "10": min(0.01 + (last_atr * 7.5), 0.05),
-                "20": min(0.00 + (last_atr * 5), 0.03),
-                "60": 0 # Add a longer timeframe ROI as a fallback
-            }
-        return self.minimal_roi # Fallback to static ROI if ATR is not available
-
-    def get_minimal_roi(self, current_profit: float, current_time: 'datetime') -> dict:
-        return self.dynamic_roi()
