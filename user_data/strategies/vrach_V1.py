@@ -5,7 +5,7 @@ from freqtrade.optimize.space import Categorical, Real
 from datetime import datetime
 from freqtrade.persistence import Trade
 
-class Vrach_Ultimate_PRO_Enhanced(IStrategy):
+class Vrach_Ultimate_PRO(IStrategy):
     INTERFACE_VERSION = 3
     timeframe = '5m'
 
