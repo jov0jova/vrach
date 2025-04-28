@@ -70,13 +70,13 @@ class Vrach_Ultimate_PRO(IStrategy):
     def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         hammer_signal = (
             (dataframe['close'] < dataframe['ema200']) &
-            (dataframe['rsi'] < 35) &
+            (dataframe['rsi'] < 30) &
             (dataframe['volume'] > dataframe['volume_mean_slow'] * 1.5) &
             (dataframe['lower_wick'] > dataframe['body'] * 1.5)
         )
 
         scalping_signal = (
-            (dataframe['rsi_fast'] < 30) &
+            (dataframe['rsi_fast'] < 28) &
             (dataframe['volume'] > dataframe['volume_mean_slow'] * 2)
         )
 
@@ -93,7 +93,7 @@ class Vrach_Ultimate_PRO(IStrategy):
             (dataframe['close'] < dataframe['close'].shift(1)) &  # Cena pala u odnosu na prethodnu svecu
             (dataframe['rsi'] > 68)  # RSI je u prekupljenoj zoni
         ) | (
-            (dataframe['rsi'] > 80) & (dataframe['rsi'] < dataframe['rsi_prev']) # RSI opada iz ekstremne prekupljenosti
+            (dataframe['rsi'] > 66) & (dataframe['rsi'] < dataframe['rsi_prev']) # RSI opada iz ekstremne prekupljenosti
         )
 
         # Dodajemo i originalne uslove za izlazak, ali sa manjim prioritetom
