@@ -9,16 +9,16 @@ class Vrach_Ultimate_PRO(IStrategy):
     timeframe = '5m'
 
     minimal_roi = {
-        "0": 0.03,
-        "10": 0.015,
-        "20": 0.005
+        "0": 0.05,
+        "10": 0.03,
+        "20": 0.02
     }
 
     stoploss = -0.05
 
     trailing_stop = True
-    trailing_stop_positive = 0.015
-    trailing_stop_positive_offset = 0.03
+    trailing_stop_positive = 0.01
+    trailing_stop_positive_offset = 0.05
     trailing_only_offset_is_reached = True
 
     use_custom_stoploss = False
@@ -74,17 +74,11 @@ class Vrach_Ultimate_PRO(IStrategy):
         return dataframe
 
     def populate_exit_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
-        # Initialize peak tracking
-        dataframe['peak_price'] = dataframe['close'].cummax()
-        dataframe['peak_rsi'] = dataframe['rsi'].cummax()
-
-        # Define exit conditions based on peak tracking
         dataframe.loc[
-            (dataframe['close'] < dataframe['peak_price'] * 0.95) |
-            (dataframe['rsi'] < dataframe['peak_rsi'] * 0.90),
+            (dataframe['close'] > dataframe['ema50']) |
+            (dataframe['rsi'] > 60),
             'exit_long'
         ] = 1
-
         return dataframe
 
     @property
@@ -97,31 +91,7 @@ class Vrach_Ultimate_PRO(IStrategy):
             if change < -0.02:
                 return True
         return False
-
-    def custom_exit(self, pair: str, trade, current_time: 'datetime', current_rate: float,
-                    current_profit: float, **kwargs):
-        """
-        Custom exit koji hvata najviši peak, čeka pullback, i tada izlazi.
-        """
-
-        # Učitaj prošle profita
-        trade_custom = trade.custom_exit_info or {}
-
-        # Ako nemamo podatke, inicijalizuj
-        if not trade_custom:
-            trade_custom['peak_profit'] = current_profit
-            trade.update_custom_exit_info(trade_custom)
-            return None  # Ne izlazimo odmah
-
-        # Ako imamo, updejtuj maksimalni peak
-        if current_profit > trade_custom['peak_profit']:
-            trade_custom['peak_profit'] = current_profit
-
-        # Ako je profit pao za pullback_amount od peaka - izlazimo
-        pullback_trigger = self.pullback_amount.value
-        if current_profit <= (trade_custom['peak_profit'] - pullback_trigger):
-            return "peak-pullback-exit"
-
-        # Ako nismo još pala dovoljno, ostani unutra
-        trade.update_custom_exit_info(trade_custom)
-        return None
+		
+		
+		
+		
