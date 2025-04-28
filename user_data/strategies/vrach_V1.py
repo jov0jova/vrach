@@ -2,6 +2,7 @@ from freqtrade.strategy.interface import IStrategy
 from pandas import DataFrame
 import talib.abstract as ta
 from freqtrade.optimize.space import Categorical, Real
+import numpy as np
 
 class Vrach_Ultimate_PRO(IStrategy):
     INTERFACE_VERSION = 3
@@ -21,7 +22,7 @@ class Vrach_Ultimate_PRO(IStrategy):
     trailing_stop_positive_offset = 0.015
     trailing_only_offset_is_reached = True
 
-    use_custom_stoploss = False
+    use_custom_stoploss = True
     can_short = False
     process_only_new_candles = True
 
@@ -37,7 +38,9 @@ class Vrach_Ultimate_PRO(IStrategy):
             'trailing_stop': Categorical([True, False]),
             'trailing_stop_positive': Real(0.005, 0.08),
             'trailing_stop_positive_offset': Real(0.01, 0.08),
-            'exit_rsi_threshold': Real(65, 85)
+            'exit_rsi_threshold': Real(65, 85),
+            'atr_multiplier_sl': Real(1.0, 3.0),
+            'atr_multiplier_tp': Real(2.0, 5.0),
         }
 
     def informative_pairs(self):
@@ -81,10 +84,26 @@ class Vrach_Ultimate_PRO(IStrategy):
     def populate_exit_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         dataframe.loc[
             (dataframe['close'] > dataframe['ema50']) |
-            (dataframe['rsi'] > 75),
+            (dataframe['rsi'] > self.dp.runmode.get('exit_rsi_threshold', 75)),
             'exit_long'
         ] = 1
         return dataframe
+
+    def custom_stoploss(self, pair: str, trade: 'Trade', current_time: 'datetime', current_rate: float, current_profit: float, **kwargs) -> float:
+        dataframe, _ = self.dp.get_pair_dataframe(pair=pair, timeframe=self.timeframe)
+        if dataframe is not None and not dataframe.empty:
+            last_atr = dataframe['atr'].iloc[-1]
+            return current_rate - (last_atr * self.dp.runmode.get('atr_multiplier_sl', 2.0))
+        return -0.05 # Fallback stoploss if ATR is not available
+
+    def custom_exit(self, pair: str, trade: 'Trade', current_time: 'datetime', current_rate: float, current_profit: float, **kwargs):
+        dataframe, _ = self.dp.get_pair_dataframe(pair=pair, timeframe=self.timeframe)
+        if dataframe is not None and not dataframe.empty:
+            last_atr = dataframe['atr'].iloc[-1]
+            take_profit_level = trade.open_rate + (last_atr * self.dp.runmode.get('atr_multiplier_tp', 3.0))
+            if current_rate >= take_profit_level:
+                return 'atr_take_profit'
+        return None
 
     @property
     def market_crash(self) -> bool:
@@ -96,7 +115,19 @@ class Vrach_Ultimate_PRO(IStrategy):
             if change < -0.02:
                 return True
         return False
-		
-		
-		
-		
+
+    def dynamic_roi(self) -> dict:
+        dataframe, _ = self.dp.get_pair_dataframe(pair=self.config['stake_currency'] + '/USDT', timeframe=self.timeframe)
+        if dataframe is not None and not dataframe.empty:
+            last_atr = dataframe['atr'].iloc[-1]
+            # Adjust ROI based on ATR. Higher volatility (higher ATR) might allow for higher ROI targets.
+            return {
+                "0": min(0.02 + (last_atr * 10), 0.08),  # Example: Base ROI + ATR factor
+                "10": min(0.01 + (last_atr * 7.5), 0.05),
+                "20": min(0.00 + (last_atr * 5), 0.03),
+                "60": 0 # Add a longer timeframe ROI as a fallback
+            }
+        return self.minimal_roi # Fallback to static ROI if ATR is not available
+
+    def get_minimal_roi(self, current_profit: float, current_time: 'datetime') -> dict:
+        return self.dynamic_roi()
