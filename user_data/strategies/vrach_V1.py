@@ -106,10 +106,10 @@ class Vrach_Ultimate_PRO(IStrategy):
             dataframe[f'rsi_{rsi_p}_{tf}'] = ta.RSI(dataframe['close'], timeperiod=rsi_p)
 
             # MACD
-            macd = ta.MACD(dataframe['close'])
-            dataframe[f'macd_{tf}'] = macd['macd']
-            dataframe[f'macdsignal_{tf}'] = macd['macdsignal']
-            dataframe[f'macdhist_{tf}'] = macd['macdhist']
+            macd, macdsignal, macdhist = ta.MACD(dataframe['close'])
+            dataframe[f'macd_{tf}'] = macd
+            dataframe[f'macdsignal_{tf}'] = macdsignal
+            dataframe[f'macdhist_{tf}'] = macdhist
 
             # Bollinger Bands (20, 2)
             bb = pta.bbands(dataframe['close'], length=20, std=2)
