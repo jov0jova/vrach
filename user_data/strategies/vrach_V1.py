@@ -68,19 +68,20 @@ class Vrach_Ultimate_PRO(IStrategy):
 
     def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
 
-        timeframes = ['5m', '15m', '30m', '1h', '4h', '8h', '12h', '1d', '7d']
+        timeframes = ['5m', '15m', '30m', '1h', '4h', '8h', '12h', '1d', '1w']
         periods = {
-            'rsi':     {'5m':14, '15m':14, '30m':12, '1h':10, '4h':9, '8h':8, '12h':7, '1d':6, '7d':5},
-            'sma':     {'5m':20, '15m':30, '30m':40, '1h':50, '4h':60, '8h':70, '12h':80, '1d':100, '7d':200},
-            'ema':     {'5m':20, '15m':25, '30m':30, '1h':40, '4h':50, '8h':60, '12h':70, '1d':90, '7d':150},
-            'wma':     {'5m':20, '15m':25, '30m':30, '1h':35, '4h':45, '8h':55, '12h':65, '1d':80, '7d':120},
-            'cci':     {'5m':20, '15m':20, '30m':20, '1h':14, '4h':14, '8h':14, '12h':10, '1d':10, '7d':10},
-            'mfi':     {'5m':14, '15m':14, '30m':14, '1h':14, '4h':10, '8h':10, '12h':10, '1d':10, '7d':10},
-            'adx':     {'5m':14, '15m':14, '30m':14, '1h':14, '4h':10, '8h':10, '12h':10, '1d':10, '7d':10},
-            'atr':     {'5m':14, '15m':14, '30m':14, '1h':14, '4h':14, '8h':10, '12h':10, '1d':10, '7d':10},
-            'roc':     {'5m':10, '15m':10, '30m':10, '1h':10, '4h':10, '8h':10, '12h':10, '1d':10, '7d':10},
-            'tema':    {'5m':20, '15m':20, '30m':20, '1h':20, '4h':20, '8h':20, '12h':20, '1d':20, '7d':20},
-            'kama':    {'5m':10, '15m':10, '30m':10, '1h':10, '4h':10, '8h':10, '12h':10, '1d':10, '7d':10},
+            'rsi':     {'5m':14, '15m':14, '30m':12, '1h':10, '4h':9, '8h':8, '12h':7, '1d':6, '1w':5},
+            'sma':     {'5m':20, '15m':30, '30m':40, '1h':50, '4h':60, '8h':70, '12h':80, '1d':100, '1w':200},
+            'ema':     {'5m':20, '15m':25, '30m':30, '1h':40, '4h':50, '8h':60, '12h':70, '1d':90, '1w':150},
+            'wma':     {'5m':20, '15m':25, '30m':30, '1h':35, '4h':45, '8h':55, '12h':65, '1d':80, '1w':120},
+            'cci':     {'5m':20, '15m':20, '30m':20, '1h':14, '4h':14, '8h':14, '12h':10, '1d':10, '1w':10},
+            'mfi':     {'5m':14, '15m':14, '30m':14, '1h':14, '4h':10, '8h':10, '12h':10, '1d':10, '1w':10},
+            'adx':     {'5m':14, '15m':14, '30m':14, '1h':14, '4h':10, '8h':10, '12h':10, '1d':10, '1w':10},
+            'atr':     {'5m':14, '15m':14, '30m':14, '1h':14, '4h':14, '8h':10, '12h':10, '1d':10, '1w':10},
+            'roc':     {'5m':10, '15m':10, '30m':10, '1h':10, '4h':10, '8h':10, '12h':10, '1d':10, '1w':10},
+            'tema':    {'5m':20, '15m':20, '30m':20, '1h':20, '4h':20, '8h':20, '12h':20, '1d':20, '1w':20},
+            'kama':    {'5m':10, '15m':10, '30m':10, '1h':10, '4h':10, '8h':10, '12h':10, '1d':10, '1w':10},
+            'bbands':    {'5m':10, '15m':15, '30m':20, '1h':20, '4h':20, '8h':25, '12h':30, '1d':35, '1w':50},
         }
 
         for tf in timeframes:
@@ -95,6 +96,7 @@ class Vrach_Ultimate_PRO(IStrategy):
             roc_p = periods['roc'][tf]
             tema_p = periods['tema'][tf]
             kama_p = periods['kama'][tf]
+            bbands_p = periods['bbands'][tf]
 
             # SMA, EMA, WMA
             dataframe[f'sma_{sma_p}_{tf}'] = ta.SMA(dataframe['close'], timeperiod=sma_p)
@@ -105,7 +107,7 @@ class Vrach_Ultimate_PRO(IStrategy):
             dataframe[f'rsi_{rsi_p}_{tf}'] = ta.RSI(dataframe['close'], timeperiod=rsi_p)
 
             # Bollinger Bands (20, 2)
-            bb = ta.BBANDS(dataframe['close'], length=20, std=2)
+            bb = ta.BBANDS(dataframe['close'], length=bbands_p, std=2)
             dataframe[f'bb_upper_{tf}'] = bb['BBU_20_2.0']
             dataframe[f'bb_middle_{tf}'] = bb['BBM_20_2.0']
             dataframe[f'bb_lower_{tf}'] = bb['BBL_20_2.0']
@@ -162,7 +164,7 @@ class Vrach_Ultimate_PRO(IStrategy):
         dataframe['macdhist'] = macd['macdhist']
         dataframe['obv'] = ta.OBV(dataframe)
         dataframe['trix'] = ta.trix(dataframe['close'])
-        
+
         return dataframe
 
     def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
