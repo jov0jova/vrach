@@ -120,26 +120,6 @@ class Vrach_Ultimate_PRO(IStrategy):
             # ATR
             dataframe[f'atr_{atr_p}_{tf}'] = ta.ATR(dataframe, timeperiod=atr_p)
 
-            # Stochastic
-            stoch = ta.STOCH(dataframe)
-            dataframe[f'stoch_k_{tf}'] = stoch['slowk']
-            dataframe[f'stoch_d_{tf}'] = stoch['slowd']
-
-            # Stoch RSI – ručni proračun
-            rsi_series = ta.RSI(dataframe['close'], timeperiod=rsi_p)
-            rsi_min = rsi_series.rolling(window=rsi_p).min()
-            rsi_max = rsi_series.rolling(window=rsi_p).max()
-            stoch_rsi_raw = (rsi_series - rsi_min) / (rsi_max - rsi_min)
-
-            # Smoothed K i D
-            smooth_k = 3
-            smooth_d = 3
-            stoch_rsi_k = stoch_rsi_raw.rolling(window=smooth_k).mean() * 100
-            stoch_rsi_d = stoch_rsi_k.rolling(window=smooth_d).mean()
-
-            dataframe[f'stoch_rsi_k_{tf}'] = stoch_rsi_k
-            dataframe[f'stoch_rsi_d_{tf}'] = stoch_rsi_d
-
             # ROC
             dataframe[f'roc_{roc_p}_{tf}'] = ta.ROC(dataframe['close'], timeperiod=roc_p)
 
