@@ -298,6 +298,7 @@ class Vrach_Ultimate_PRO(IStrategy):
         df['price_above_ema_200'] = np.where(df['close'] > df['ema_200'], 1, 0)
 
         return df
+
     def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         if dataframe.empty:
             return dataframe
@@ -324,6 +325,7 @@ class Vrach_Ultimate_PRO(IStrategy):
             informative_1h[["ema_50", "ema_200", "rsi", "macd", "macd_signal"]],
             left_index=True, right_index=True, how='left', suffixes=("", "_1h")
         )
+        print(f"Kolone u dataframe nakon merge sa 1h: {dataframe.columns}") # DODAJ OVAJ RED
         position_cond = (
             (dataframe['ema_50_1h'] < dataframe['ema_200_1h']) &
             (dataframe['rsi_1h'] > 30) & (dataframe['rsi_1h'] < 50) &
