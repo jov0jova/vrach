@@ -141,7 +141,6 @@ class Vrach_Ultimate_PRO(IStrategy):
         dataframe['macdsignal'] = macd['macdsignal']
         dataframe['macdhist'] = macd['macdhist']
         dataframe['obv'] = ta.OBV(dataframe)
-        dataframe['trix'] = ta.trix(dataframe['close'])
 
         return dataframe
 
