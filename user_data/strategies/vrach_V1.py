@@ -129,11 +129,6 @@ class Vrach_Ultimate_PRO(IStrategy):
             # KAMA
             dataframe[f'kama_{kama_p}_{tf}'] = ta.KAMA(dataframe['close'], timeperiod=kama_p)
 
-            # VWAP (samo za niže TF)
-            if tf in ['5m', '15m', '30m', '1h']:
-                vwap = ta.VWAP(dataframe, length=20)
-                dataframe[f'vwap_{tf}'] = vwap
-
             # Ichimoku Cloud
             ichimoku = ta.ICHIMOKU(dataframe)
             dataframe[f'ichi_base_{tf}'] = ichimoku['chikun']
