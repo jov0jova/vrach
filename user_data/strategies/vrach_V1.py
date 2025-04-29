@@ -23,7 +23,7 @@ class Vrach_Ultimate_PRO(IStrategy):
     INTERFACE_VERSION = 3
 
     timeframe = '5m'
-
+    informative_timeframes = ['5m','15m','30m','1h','4h','8h','12h','1d','7d']
     minimal_roi = {
         "480": 0.02,
         "240": 0.014,
@@ -67,185 +67,92 @@ class Vrach_Ultimate_PRO(IStrategy):
         return []
 
     def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
-        # === Timeframe 5m ===
-        dataframe['sma_20_5m'] = ta.SMA(dataframe['close'], timeperiod=20)
-        dataframe['ema_20_5m'] = ta.EMA(dataframe['close'], timeperiod=20)
-        dataframe['wma_20_5m'] = ta.WMA(dataframe['close'], timeperiod=20)
-        dataframe['rsi_14_5m'] = ta.RSI(dataframe['close'], timeperiod=14)
-        dataframe['cci_20_5m'] = ta.CCI(dataframe, timeperiod=20)
-        dataframe['mfi_14_5m'] = ta.MFI(dataframe, timeperiod=14)
-        dataframe['adx_14_5m'] = ta.ADX(dataframe, timeperiod=14)
-        dataframe['+di_5m'] = ta.PLUS_DI(dataframe, timeperiod=14)
-        dataframe['-di_5m'] = ta.MINUS_DI(dataframe, timeperiod=14)
-        dataframe['atr_14_5m'] = ta.ATR(dataframe, timeperiod=14)
-        dataframe['roc_10_5m'] = ta.ROC(dataframe['close'], timeperiod=10)
-        dataframe['tema_20_5m'] = ta.TEMA(dataframe['close'], timeperiod=20)
-        dataframe['kama_10_5m'] = ta.KAMA(dataframe['close'], timeperiod=10)
-        bb = ta.BBANDS(dataframe, timeperiod=10, nbdevup=2.0, nbdevdn=2.0, matype=0)
-        dataframe['bb_upper_5m'] = bb['upperband']
-        dataframe['bb_middle_5m'] = bb['middleband']
-        dataframe['bb_lower_5m'] = bb['lowerband']
+        # Simple Moving Average (SMA)
+        dataframe['sma_50'] = ta_lib.SMA(dataframe['close'], timeperiod=50)
+        
+        # Exponential Moving Average (EMA)
+        dataframe['ema_50'] = ta_lib.EMA(dataframe['close'], timeperiod=50)
+        
+        # Weighted Moving Average (WMA)
+        dataframe['wma_50'] = ta_lib.WMA(dataframe['close'], timeperiod=50)
 
-        # === Timeframe 15m ===
-        dataframe['sma_30_15m'] = ta.SMA(dataframe['close'], timeperiod=30)
-        dataframe['ema_25_15m'] = ta.EMA(dataframe['close'], timeperiod=25)
-        dataframe['wma_25_15m'] = ta.WMA(dataframe['close'], timeperiod=25)
-        dataframe['rsi_14_15m'] = ta.RSI(dataframe['close'], timeperiod=14)
-        dataframe['cci_20_15m'] = ta.CCI(dataframe, timeperiod=20)
-        dataframe['mfi_14_15m'] = ta.MFI(dataframe, timeperiod=14)
-        dataframe['adx_14_15m'] = ta.ADX(dataframe, timeperiod=14)
-        dataframe['+di_15m'] = ta.PLUS_DI(dataframe, timeperiod=14)
-        dataframe['-di_15m'] = ta.MINUS_DI(dataframe, timeperiod=14)
-        dataframe['atr_14_15m'] = ta.ATR(dataframe, timeperiod=14)
-        dataframe['roc_10_15m'] = ta.ROC(dataframe['close'], timeperiod=10)
-        dataframe['tema_20_15m'] = ta.TEMA(dataframe['close'], timeperiod=20)
-        dataframe['kama_10_15m'] = ta.KAMA(dataframe['close'], timeperiod=10)
-        bb = ta.BBANDS(dataframe, timeperiod=15, nbdevup=2.0, nbdevdn=2.0, matype=0)
-        dataframe['bb_upper_15m'] = bb['upperband']
-        dataframe['bb_middle_15m'] = bb['middleband']
-        dataframe['bb_lower_15m'] = bb['lowerband']
+        # 200-period Simple Moving Average (SMA 200)
+        dataframe['sma_200'] = ta_lib.SMA(dataframe['close'], timeperiod=200)
 
-        # === Timeframe 30m ===
-        dataframe['sma_40_30m'] = ta.SMA(dataframe['close'], timeperiod=40)
-        dataframe['ema_30_30m'] = ta.EMA(dataframe['close'], timeperiod=30)
-        dataframe['wma_30_30m'] = ta.WMA(dataframe['close'], timeperiod=30)
-        dataframe['rsi_12_30m'] = ta.RSI(dataframe['close'], timeperiod=12)
-        dataframe['cci_20_30m'] = ta.CCI(dataframe, timeperiod=20)
-        dataframe['mfi_14_30m'] = ta.MFI(dataframe, timeperiod=14)
-        dataframe['adx_14_30m'] = ta.ADX(dataframe, timeperiod=14)
-        dataframe['+di_30m'] = ta.PLUS_DI(dataframe, timeperiod=14)
-        dataframe['-di_30m'] = ta.MINUS_DI(dataframe, timeperiod=14)
-        dataframe['atr_14_30m'] = ta.ATR(dataframe, timeperiod=14)
-        dataframe['roc_10_30m'] = ta.ROC(dataframe['close'], timeperiod=10)
-        dataframe['tema_20_30m'] = ta.TEMA(dataframe['close'], timeperiod=20)
-        dataframe['kama_10_30m'] = ta.KAMA(dataframe['close'], timeperiod=10)
-        bb = ta.BBANDS(dataframe, timeperiod=20, nbdevup=2.0, nbdevdn=2.0, matype=0)
-        dataframe['bb_upper_30m'] = bb['upperband']
-        dataframe['bb_middle_30m'] = bb['middleband']
-        dataframe['bb_lower_30m'] = bb['lowerband']
+        # 200-period Exponential Moving Average (EMA 200)
+        dataframe['ema_200'] = ta_lib.EMA(dataframe['close'], timeperiod=200)
 
-        # 1h timeframe
-        dataframe['sma_50_1h'] = ta.SMA(dataframe['close'], timeperiod=50)
-        dataframe['ema_40_1h'] = ta.EMA(dataframe['close'], timeperiod=40)
-        dataframe['wma_35_1h'] = ta.WMA(dataframe['close'], timeperiod=35)
-        dataframe['rsi_10_1h'] = ta.RSI(dataframe['close'], timeperiod=10)
-        dataframe['cci_14_1h'] = ta.CCI(dataframe, timeperiod=14)
-        dataframe['mfi_14_1h'] = ta.MFI(dataframe, timeperiod=14)
-        dataframe['adx_14_1h'] = ta.ADX(dataframe, timeperiod=14)
-        dataframe['+di_1h'] = ta.PLUS_DI(dataframe, timeperiod=14)
-        dataframe['-di_1h'] = ta.MINUS_DI(dataframe, timeperiod=14)
-        dataframe['atr_14_1h'] = ta.ATR(dataframe, timeperiod=14)
-        dataframe['roc_10_1h'] = ta.ROC(dataframe['close'], timeperiod=10)
-        dataframe['tema_20_1h'] = ta.TEMA(dataframe['close'], timeperiod=20)
-        dataframe['kama_10_1h'] = ta.KAMA(dataframe['close'], timeperiod=10)
-        bb_1h = ta.BBANDS(dataframe, timeperiod=20, nbdevup=2.0, nbdevdn=2.0, matype=0)
-        dataframe['bb_upper_1h'] = bb_1h['upperband']
-        dataframe['bb_middle_1h'] = bb_1h['middleband']
-        dataframe['bb_lower_1h'] = bb_1h['lowerband']
+        # 200-period Weighted Moving Average (WMA 200)
+        dataframe['wma_200'] = ta_lib.WMA(dataframe['close'], timeperiod=200)
 
-        # 4h timeframe
-        dataframe['sma_60_4h'] = ta.SMA(dataframe['close'], timeperiod=60)
-        dataframe['ema_50_4h'] = ta.EMA(dataframe['close'], timeperiod=50)
-        dataframe['wma_45_4h'] = ta.WMA(dataframe['close'], timeperiod=45)
-        dataframe['rsi_9_4h'] = ta.RSI(dataframe['close'], timeperiod=9)
-        dataframe['cci_14_4h'] = ta.CCI(dataframe, timeperiod=14)
-        dataframe['mfi_10_4h'] = ta.MFI(dataframe, timeperiod=10)
-        dataframe['adx_10_4h'] = ta.ADX(dataframe, timeperiod=10)
-        dataframe['+di_4h'] = ta.PLUS_DI(dataframe, timeperiod=10)
-        dataframe['-di_4h'] = ta.MINUS_DI(dataframe, timeperiod=10)
-        dataframe['atr_14_4h'] = ta.ATR(dataframe, timeperiod=14)
-        dataframe['roc_10_4h'] = ta.ROC(dataframe['close'], timeperiod=10)
-        dataframe['tema_20_4h'] = ta.TEMA(dataframe['close'], timeperiod=20)
-        dataframe['kama_10_4h'] = ta.KAMA(dataframe['close'], timeperiod=10)
-        bb_4h = ta.BBANDS(dataframe, timeperiod=20, nbdevup=2.0, nbdevdn=2.0, matype=0)
-        dataframe['bb_upper_4h'] = bb_4h['upperband']
-        dataframe['bb_middle_4h'] = bb_4h['middleband']
-        dataframe['bb_lower_4h'] = bb_4h['lowerband']
+        # Relative Strength Index (RSI)
+        dataframe['rsi_14'] = ta_lib.RSI(dataframe['close'], timeperiod=14)
 
-        # 8h timeframe
-        dataframe['sma_70_8h'] = ta.SMA(dataframe['close'], timeperiod=70)
-        dataframe['ema_60_8h'] = ta.EMA(dataframe['close'], timeperiod=60)
-        dataframe['wma_55_8h'] = ta.WMA(dataframe['close'], timeperiod=55)
-        dataframe['rsi_8_8h'] = ta.RSI(dataframe['close'], timeperiod=8)
-        dataframe['cci_14_8h'] = ta.CCI(dataframe, timeperiod=14)
-        dataframe['mfi_10_8h'] = ta.MFI(dataframe, timeperiod=10)
-        dataframe['adx_10_8h'] = ta.ADX(dataframe, timeperiod=10)
-        dataframe['+di_8h'] = ta.PLUS_DI(dataframe, timeperiod=10)
-        dataframe['-di_8h'] = ta.MINUS_DI(dataframe, timeperiod=10)
-        dataframe['atr_10_8h'] = ta.ATR(dataframe, timeperiod=10)
-        dataframe['roc_10_8h'] = ta.ROC(dataframe['close'], timeperiod=10)
-        dataframe['tema_20_8h'] = ta.TEMA(dataframe['close'], timeperiod=20)
-        dataframe['kama_10_8h'] = ta.KAMA(dataframe['close'], timeperiod=10)
-        bb_8h = ta.BBANDS(dataframe, timeperiod=25, nbdevup=2.0, nbdevdn=2.0, matype=0)
-        dataframe['bb_upper_8h'] = bb_8h['upperband']
-        dataframe['bb_middle_8h'] = bb_8h['middleband']
-        dataframe['bb_lower_8h'] = bb_8h['lowerband']
-
-        # 12h timeframe
-        dataframe['sma_80_12h'] = ta.SMA(dataframe['close'], timeperiod=80)
-        dataframe['ema_70_12h'] = ta.EMA(dataframe['close'], timeperiod=70)
-        dataframe['wma_65_12h'] = ta.WMA(dataframe['close'], timeperiod=65)
-        dataframe['rsi_7_12h'] = ta.RSI(dataframe['close'], timeperiod=7)
-        dataframe['cci_10_12h'] = ta.CCI(dataframe, timeperiod=10)
-        dataframe['mfi_10_12h'] = ta.MFI(dataframe, timeperiod=10)
-        dataframe['adx_10_12h'] = ta.ADX(dataframe, timeperiod=10)
-        dataframe['+di_12h'] = ta.PLUS_DI(dataframe, timeperiod=10)
-        dataframe['-di_12h'] = ta.MINUS_DI(dataframe, timeperiod=10)
-        dataframe['atr_10_12h'] = ta.ATR(dataframe, timeperiod=10)
-        dataframe['roc_10_12h'] = ta.ROC(dataframe['close'], timeperiod=10)
-        dataframe['tema_20_12h'] = ta.TEMA(dataframe['close'], timeperiod=20)
-        dataframe['kama_10_12h'] = ta.KAMA(dataframe['close'], timeperiod=10)
-        bb_12h = ta.BBANDS(dataframe, timeperiod=30, nbdevup=2.0, nbdevdn=2.0, matype=0)
-        dataframe['bb_upper_12h'] = bb_12h['upperband']
-        dataframe['bb_middle_12h'] = bb_12h['middleband']
-        dataframe['bb_lower_12h'] = bb_12h['lowerband']
-
-        # 1d timeframe
-        dataframe['sma_100_1d'] = ta.SMA(dataframe['close'], timeperiod=100)
-        dataframe['ema_90_1d'] = ta.EMA(dataframe['close'], timeperiod=90)
-        dataframe['wma_80_1d'] = ta.WMA(dataframe['close'], timeperiod=80)
-        dataframe['rsi_6_1d'] = ta.RSI(dataframe['close'], timeperiod=6)
-        dataframe['cci_10_1d'] = ta.CCI(dataframe, timeperiod=10)
-        dataframe['mfi_10_1d'] = ta.MFI(dataframe, timeperiod=10)
-        dataframe['adx_10_1d'] = ta.ADX(dataframe, timeperiod=10)
-        dataframe['+di_1d'] = ta.PLUS_DI(dataframe, timeperiod=10)
-        dataframe['-di_1d'] = ta.MINUS_DI(dataframe, timeperiod=10)
-        dataframe['atr_10_1d'] = ta.ATR(dataframe, timeperiod=10)
-        dataframe['roc_10_1d'] = ta.ROC(dataframe['close'], timeperiod=10)
-        dataframe['tema_20_1d'] = ta.TEMA(dataframe['close'], timeperiod=20)
-        dataframe['kama_10_1d'] = ta.KAMA(dataframe['close'], timeperiod=10)
-        bb_1d = ta.BBANDS(dataframe, timeperiod=35, nbdevup=2.0, nbdevdn=2.0, matype=0)
-        dataframe['bb_upper_1d'] = bb_1d['upperband']
-        dataframe['bb_middle_1d'] = bb_1d['middleband']
-        dataframe['bb_lower_1d'] = bb_1d['lowerband']
-
-        # 1w timeframe
-        dataframe['sma_200_1w'] = ta.SMA(dataframe['close'], timeperiod=200)
-        dataframe['ema_150_1w'] = ta.EMA(dataframe['close'], timeperiod=150)
-        dataframe['wma_120_1w'] = ta.WMA(dataframe['close'], timeperiod=120)
-        dataframe['rsi_5_1w'] = ta.RSI(dataframe['close'], timeperiod=5)
-        dataframe['cci_10_1w'] = ta.CCI(dataframe, timeperiod=10)
-        dataframe['mfi_10_1w'] = ta.MFI(dataframe, timeperiod=10)
-        dataframe['adx_10_1w'] = ta.ADX(dataframe, timeperiod=10)
-        dataframe['+di_1w'] = ta.PLUS_DI(dataframe, timeperiod=10)
-        dataframe['-di_1w'] = ta.MINUS_DI(dataframe, timeperiod=10)
-        dataframe['atr_10_1w'] = ta.ATR(dataframe, timeperiod=10)
-        dataframe['roc_10_1w'] = ta.ROC(dataframe['close'], timeperiod=10)
-        dataframe['tema_20_1w'] = ta.TEMA(dataframe['close'], timeperiod=20)
-        dataframe['kama_10_1w'] = ta.KAMA(dataframe['close'], timeperiod=10)
-        bb_1w = ta.BBANDS(dataframe, timeperiod=50, nbdevup=2.0, nbdevdn=2.0, matype=0)
-        dataframe['bb_upper_1w'] = bb_1w['upperband']
-        dataframe['bb_middle_1w'] = bb_1w['middleband']
-        dataframe['bb_lower_1w'] = bb_1w['lowerband']
-
-        # === Statički indikatori izvan vremenskih okvira ===
-        macd = ta.MACD(dataframe)
+        # MACD and its components
+        macd = ta_lib.MACD(dataframe['close'])
         dataframe['macd'] = macd['macd']
         dataframe['macdsignal'] = macd['macdsignal']
         dataframe['macdhist'] = macd['macdhist']
-        dataframe['obv'] = ta.OBV(dataframe)
+
+        # Bollinger Bands
+        bb = ta.bbands(dataframe['close'], length=20, std=2)
+        dataframe['bb_upper'] = bb['BBU_20_2.0']
+        dataframe['bb_middle'] = bb['BBM_20_2.0']
+        dataframe['bb_lower'] = bb['BBL_20_2.0']
+
+        # Commodity Channel Index (CCI)
+        dataframe['cci_20'] = ta_lib.CCI(dataframe, timeperiod=20)
+
+        # Money Flow Index (MFI)
+        dataframe['mfi_14'] = ta_lib.MFI(dataframe, timeperiod=14)
+
+        # Average True Range (ATR)
+        dataframe['atr_14'] = ta_lib.ATR(dataframe, timeperiod=14)
+
+        # Average Directional Index (ADX) and Directional Indicators
+        dataframe['adx_14'] = ta_lib.ADX(dataframe, timeperiod=14)
+        dataframe['+di'] = ta_lib.PLUS_DI(dataframe, timeperiod=14)
+        dataframe['-di'] = ta_lib.MINUS_DI(dataframe, timeperiod=14)
+
+        # Stochastic Oscillator
+        stoch = ta_lib.STOCH(dataframe)
+        dataframe['stoch_k'] = stoch['slowk']
+        dataframe['stoch_d'] = stoch['slowd']
+
+        # Stochastic RSI
+        stoch_rsi = ta.stochrsi(dataframe['close'])
+        dataframe['stoch_rsi_k'] = stoch_rsi['STOCHRSIk_14_14_3_3']
+        dataframe['stoch_rsi_d'] = stoch_rsi['STOCHRSId_14_14_3_3']
+
+        # On-Balance Volume (OBV)
+        dataframe['obv'] = ta_lib.OBV(dataframe)
+
+        # Rate of Change (ROC)
+        dataframe['roc_14'] = ta_lib.ROC(dataframe['close'], timeperiod=14)
+
+        # Triple Exponential Moving Average (TEMA)
+        dataframe['tema_20'] = ta_lib.TEMA(dataframe['close'], timeperiod=20)
+
+        # TRIX (Triple Exponential Average)
+        dataframe['trix'] = ta.trix(dataframe['close'])
+
+        # Kaufman's Adaptive Moving Average (KAMA)
+        dataframe['kama'] = ta_lib.KAMA(dataframe['close'], timeperiod=10)
+
+        # VWAP (Volume Weighted Average Price) - used on minute timeframes
+        if metadata.get('timeframe') in ['5m', '15m', '30m', '1h']:
+            vwap = ta.vwap(dataframe['high'], dataframe['low'], dataframe['close'], dataframe['volume'])
+            dataframe['vwap'] = vwap
+
+        # Ichimoku Cloud components
+        ichimoku = ta.ichimoku(dataframe['high'], dataframe['low'])
+        dataframe['ichi_base'] = ichimoku['ISA_9']
+        dataframe['ichi_conversion'] = ichimoku['ISB_26']
+        dataframe['ichi_leading_span_a'] = ichimoku['ITS_9']
+        dataframe['ichi_leading_span_b'] = ichimoku['IKS_26']
 
         return dataframe
+
 
 
     def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
