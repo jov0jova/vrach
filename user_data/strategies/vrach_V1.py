@@ -106,12 +106,6 @@ class Vrach_Ultimate_PRO(IStrategy):
             # RSI
             dataframe[f'rsi_{rsi_p}_{tf}'] = ta.RSI(dataframe['close'], timeperiod=rsi_p)
 
-            # Bollinger Bands (20, 2)
-            bb = ta.BBANDS(dataframe['close'], length=bbands_p, std=2)
-            dataframe[f'bb_upper_{tf}'] = bb['BBU_20_2.0']
-            dataframe[f'bb_middle_{tf}'] = bb['BBM_20_2.0']
-            dataframe[f'bb_lower_{tf}'] = bb['BBL_20_2.0']
-
             # CCI
             dataframe[f'cci_{cci_p}_{tf}'] = ta.CCI(dataframe, timeperiod=cci_p)
 
@@ -156,6 +150,12 @@ class Vrach_Ultimate_PRO(IStrategy):
             dataframe[f'ichi_conversion_{tf}'] = ichimoku['tenkan']
             dataframe[f'ichi_leading_a_{tf}'] = ichimoku['senkou_a']
             dataframe[f'ichi_leading_b_{tf}'] = ichimoku['senkou_b']
+
+            # Bollinger Bands (20, 2)
+            bb = ta.BBANDS(dataframe['close'], length=bbands_p, std=2)
+            dataframe[f'bb_upper_{tf}'] = bb['BBU_20_2.0']
+            dataframe[f'bb_middle_{tf}'] = bb['BBM_20_2.0']
+            dataframe[f'bb_lower_{tf}'] = bb['BBL_20_2.0']
         
         # Indikatori izvan petlje (računaju se samo jednom)
         macd = ta.MACD(dataframe)
