@@ -67,9 +67,15 @@ class Vrach_Ultimate_PRO(IStrategy):
         return []
 
     def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
-        timeframes = ['5m', '15m', '30m', '1h', '4h', '8h', '12h', '1d', '7d']
+        # Indikatori izvan petlje (računaju se samo jednom)
+        macd = ta.MACD(dataframe['close'])
+        dataframe['macd'] = macd['macd']
+        dataframe['macdsignal'] = macd['macdsignal']
+        dataframe['macdhist'] = macd['macdhist']
+        dataframe['obv'] = ta.OBV(dataframe)
+        dataframe['trix'] = ta.trix(dataframe['close'])
 
-        # Prilagođeni periodi po indikatorima
+        timeframes = ['5m', '15m', '30m', '1h', '4h', '8h', '12h', '1d', '7d']
         periods = {
             'rsi':     {'5m':14, '15m':14, '30m':12, '1h':10, '4h':9, '8h':8, '12h':7, '1d':6, '7d':5},
             'sma':     {'5m':20, '15m':30, '30m':40, '1h':50, '4h':60, '8h':70, '12h':80, '1d':100, '7d':200},
@@ -105,12 +111,6 @@ class Vrach_Ultimate_PRO(IStrategy):
             # RSI
             dataframe[f'rsi_{rsi_p}_{tf}'] = ta.RSI(dataframe['close'], timeperiod=rsi_p)
 
-            # MACD
-            macd = ta.MACD(dataframe['close'])
-            dataframe[f'macd_{tf}'] = macd['macd']
-            dataframe[f'macdsignal_{tf}'] = macd['macdsignal']
-            dataframe[f'macdhist_{tf}'] = macd['macdhist']
-
             # Bollinger Bands (20, 2)
             bb = ta.BBANDS(dataframe['close'], length=20, std=2)
             dataframe[f'bb_upper_{tf}'] = bb['BBU_20_2.0']
@@ -141,32 +141,26 @@ class Vrach_Ultimate_PRO(IStrategy):
             dataframe[f'stoch_rsi_k_{tf}'] = stoch_rsi['STOCHRSIk_14_14_3_3']
             dataframe[f'stoch_rsi_d_{tf}'] = stoch_rsi['STOCHRSId_14_14_3_3']
 
-            # OBV
-            dataframe[f'obv_{tf}'] = ta.OBV(dataframe)
-
             # ROC
             dataframe[f'roc_{roc_p}_{tf}'] = ta.ROC(dataframe['close'], timeperiod=roc_p)
 
             # TEMA
             dataframe[f'tema_{tema_p}_{tf}'] = ta.TEMA(dataframe['close'], timeperiod=tema_p)
 
-            # TRIX
-            dataframe[f'trix_{tf}'] = ta.trix(dataframe['close'])
-
             # KAMA
             dataframe[f'kama_{kama_p}_{tf}'] = ta.KAMA(dataframe['close'], timeperiod=kama_p)
 
             # VWAP (samo za niže TF)
             if tf in ['5m', '15m', '30m', '1h']:
-                vwap = ta.vwap(dataframe['high'], dataframe['low'], dataframe['close'], dataframe['volume'])
+                vwap = ta.VWAP(dataframe, length=20)
                 dataframe[f'vwap_{tf}'] = vwap
 
             # Ichimoku Cloud
-            ichimoku = ta.ichimoku(dataframe['high'], dataframe['low'])
-            dataframe[f'ichi_base_{tf}'] = ichimoku['ISA_9']
-            dataframe[f'ichi_conversion_{tf}'] = ichimoku['ISB_26']
-            dataframe[f'ichi_leading_a_{tf}'] = ichimoku['ITS_9']
-            dataframe[f'ichi_leading_b_{tf}'] = ichimoku['IKS_26']
+            ichimoku = ta.ICHIMOKU(dataframe)
+            dataframe[f'ichi_base_{tf}'] = ichimoku['chikun']
+            dataframe[f'ichi_conversion_{tf}'] = ichimoku['tenkan']
+            dataframe[f'ichi_leading_a_{tf}'] = ichimoku['senkou_a']
+            dataframe[f'ichi_leading_b_{tf}'] = ichimoku['senkou_b']
 
         return dataframe
 
