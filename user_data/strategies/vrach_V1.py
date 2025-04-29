@@ -112,7 +112,7 @@ class Vrach_Ultimate_PRO(IStrategy):
             dataframe[f'macdhist_{tf}'] = macdhist
 
             # Bollinger Bands (20, 2)
-            bb = pta.bbands(dataframe['close'], length=20, std=2)
+            bb = ta.bbands(dataframe['close'], length=20, std=2)
             dataframe[f'bb_upper_{tf}'] = bb['BBU_20_2.0']
             dataframe[f'bb_middle_{tf}'] = bb['BBM_20_2.0']
             dataframe[f'bb_lower_{tf}'] = bb['BBL_20_2.0']
@@ -151,18 +151,18 @@ class Vrach_Ultimate_PRO(IStrategy):
             dataframe[f'tema_{tema_p}_{tf}'] = ta.TEMA(dataframe['close'], timeperiod=tema_p)
 
             # TRIX
-            dataframe[f'trix_{tf}'] = pta.trix(dataframe['close'])
+            dataframe[f'trix_{tf}'] = ta.trix(dataframe['close'])
 
             # KAMA
             dataframe[f'kama_{kama_p}_{tf}'] = ta.KAMA(dataframe['close'], timeperiod=kama_p)
 
             # VWAP (samo za niže TF)
             if tf in ['5m', '15m', '30m', '1h']:
-                vwap = pta.vwap(dataframe['high'], dataframe['low'], dataframe['close'], dataframe['volume'])
+                vwap = ta.vwap(dataframe['high'], dataframe['low'], dataframe['close'], dataframe['volume'])
                 dataframe[f'vwap_{tf}'] = vwap
 
             # Ichimoku Cloud
-            ichimoku = pta.ichimoku(dataframe['high'], dataframe['low'])
+            ichimoku = ta.ichimoku(dataframe['high'], dataframe['low'])
             dataframe[f'ichi_base_{tf}'] = ichimoku['ISA_9']
             dataframe[f'ichi_conversion_{tf}'] = ichimoku['ISB_26']
             dataframe[f'ichi_leading_a_{tf}'] = ichimoku['ITS_9']
