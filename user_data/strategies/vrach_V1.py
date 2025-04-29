@@ -366,7 +366,7 @@ class Vrach_Ultimate_PRO(IStrategy):
 
         return None  # default: ne menjaj ništa
     
-    def adjust_trade_position_type(self, trade: 'Trade', dataframe: DataFrame) -> Optional[str]:
+    def adjust_trade_position_type(self, trade: 'Trade', dataframe: DataFrame):
         last = dataframe.iloc[-1]
         current_type = trade.entry_tag
 
