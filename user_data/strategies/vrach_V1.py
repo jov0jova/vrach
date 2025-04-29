@@ -129,13 +129,6 @@ class Vrach_Ultimate_PRO(IStrategy):
             # KAMA
             dataframe[f'kama_{kama_p}_{tf}'] = ta.KAMA(dataframe['close'], timeperiod=kama_p)
 
-            # Ichimoku Cloud
-            ichimoku = ta.ICHIMOKU(dataframe)
-            dataframe[f'ichi_base_{tf}'] = ichimoku['chikun']
-            dataframe[f'ichi_conversion_{tf}'] = ichimoku['tenkan']
-            dataframe[f'ichi_leading_a_{tf}'] = ichimoku['senkou_a']
-            dataframe[f'ichi_leading_b_{tf}'] = ichimoku['senkou_b']
-
             # Bollinger Bands (20, 2)
             bb = ta.BBANDS(dataframe['close'], length=bbands_p, std=2)
             dataframe[f'bb_upper_{tf}'] = bb['BBU_20_2.0']
