@@ -130,7 +130,7 @@ class Vrach_Ultimate_PRO(IStrategy):
             dataframe[f'kama_{kama_p}_{tf}'] = ta.KAMA(dataframe['close'], timeperiod=kama_p)
 
             # Bollinger Bands (20, 2)
-            bb = ta.BBANDS(dataframe['close'], timeperiod=bbands_p, nbdevup=2, nbdevdn=2, matype=0)
+            bb = ta.BBANDS(dataframe['close'], timeperiod=bbands_p, nbdevup=2.0, nbdevdn=2.0, matype=0)
             dataframe[f'bb_upper_{tf}'] = bb['upperband']
             dataframe[f'bb_middle_{tf}'] = bb['middleband']
             dataframe[f'bb_lower_{tf}'] = bb['lowerband']
