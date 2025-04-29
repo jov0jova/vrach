@@ -106,13 +106,13 @@ class Vrach_Ultimate_PRO(IStrategy):
             dataframe[f'rsi_{rsi_p}_{tf}'] = ta.RSI(dataframe['close'], timeperiod=rsi_p)
 
             # MACD
-            macd, macdsignal, macdhist = ta.MACD(dataframe['close'])
-            dataframe[f'macd_{tf}'] = macd
-            dataframe[f'macdsignal_{tf}'] = macdsignal
-            dataframe[f'macdhist_{tf}'] = macdhist
+            macd = ta.MACD(dataframe['close'])
+            dataframe[f'macd_{tf}'] = macd['macd']
+            dataframe[f'macdsignal_{tf}'] = macd['macdsignal']
+            dataframe[f'macdhist_{tf}'] = macd['macdhist']
 
             # Bollinger Bands (20, 2)
-            bb = ta.bbands(dataframe['close'], length=20, std=2)
+            bb = ta.BBANDS(dataframe['close'], length=20, std=2)
             dataframe[f'bb_upper_{tf}'] = bb['BBU_20_2.0']
             dataframe[f'bb_middle_{tf}'] = bb['BBM_20_2.0']
             dataframe[f'bb_lower_{tf}'] = bb['BBL_20_2.0']
@@ -137,7 +137,7 @@ class Vrach_Ultimate_PRO(IStrategy):
             dataframe[f'stoch_d_{tf}'] = stoch['slowd']
 
             # Stoch RSI
-            stoch_rsi = pta.stochrsi(dataframe['close'])
+            stoch_rsi = ta.stochrsi(dataframe['close'])
             dataframe[f'stoch_rsi_k_{tf}'] = stoch_rsi['STOCHRSIk_14_14_3_3']
             dataframe[f'stoch_rsi_d_{tf}'] = stoch_rsi['STOCHRSId_14_14_3_3']
 
