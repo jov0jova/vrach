@@ -67,13 +67,6 @@ class Vrach_Ultimate_PRO(IStrategy):
         return []
 
     def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
-        # Indikatori izvan petlje (računaju se samo jednom)
-        macd = ta.MACD(dataframe['close'])
-        dataframe['macd'] = macd['macd']
-        dataframe['macdsignal'] = macd['macdsignal']
-        dataframe['macdhist'] = macd['macdhist']
-        dataframe['obv'] = ta.OBV(dataframe)
-        dataframe['trix'] = ta.trix(dataframe['close'])
 
         timeframes = ['5m', '15m', '30m', '1h', '4h', '8h', '12h', '1d', '7d']
         periods = {
@@ -161,7 +154,15 @@ class Vrach_Ultimate_PRO(IStrategy):
             dataframe[f'ichi_conversion_{tf}'] = ichimoku['tenkan']
             dataframe[f'ichi_leading_a_{tf}'] = ichimoku['senkou_a']
             dataframe[f'ichi_leading_b_{tf}'] = ichimoku['senkou_b']
-
+        
+        # Indikatori izvan petlje (računaju se samo jednom)
+        macd = ta.MACD(dataframe)
+        dataframe['macd'] = macd['macd']
+        dataframe['macdsignal'] = macd['macdsignal']
+        dataframe['macdhist'] = macd['macdhist']
+        dataframe['obv'] = ta.OBV(dataframe)
+        dataframe['trix'] = ta.trix(dataframe['close'])
+        
         return dataframe
 
     def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
@@ -186,7 +187,7 @@ class Vrach_Ultimate_PRO(IStrategy):
         position_cond = (
             (dataframe['ema_50_1h'] < dataframe['ema_200_1h']) &
             (dataframe['rsi_14_1h'] > 30) & (dataframe['rsi_14_1h'] < 50) &
-            (dataframe['macd_1h'] > dataframe['macdsignal_1h']) &
+            (dataframe['macd'] > dataframe['macdsignal']) &
             (dataframe['volume'] > 0)
         )
 
@@ -197,7 +198,7 @@ class Vrach_Ultimate_PRO(IStrategy):
         daytrade_cond = (
             (dataframe['rsi_14_1h'] < 40) &
             (dataframe['close'] <= dataframe['bb_lower_1h']) &
-            (dataframe['macd_1h'] > dataframe['macdsignal_1h']) &
+            (dataframe['macd'] > dataframe['macdsignal']) &
             (dataframe['obv_1h'] > dataframe['obv_1h'].shift(1)) &
             (dataframe['volume'] > 0)
         )
@@ -209,7 +210,7 @@ class Vrach_Ultimate_PRO(IStrategy):
         swing_cond = (
             (dataframe['ema_200_4h'] > dataframe['ema_200_4h'].shift(1)) &
             (dataframe['adx_14_4h'] > 25) &
-            (dataframe['macd_4h'] > 0) &
+            (dataframe['macd'] > 0) &
             (dataframe['rsi_14_4h'] > 40) & (dataframe['rsi_14_4h'] < 60) &
             (dataframe['volume'] > 0)
         )
@@ -221,7 +222,7 @@ class Vrach_Ultimate_PRO(IStrategy):
         long_cond = (
             (dataframe['ema_200_1d'] > dataframe['ema_200_1d'].shift(1)) &
             (dataframe['rsi_14_1d'] > 50) &
-            (dataframe['macd_1d'] > dataframe['macdsignal_1d']) &
+            (dataframe['macd'] > dataframe['macdsignal']) &
             (dataframe['close'] > dataframe['bb_middle_1d']) &
             (dataframe['volume'] > 0)
         )
@@ -243,7 +244,7 @@ class Vrach_Ultimate_PRO(IStrategy):
             (
                 (dataframe['rsi_14_5m'] > 70) |
                 (dataframe['close'] > dataframe['bb_upper_5m']) |
-                (dataframe['macd_5m'] < dataframe['macdsignal_5m'])  # gubi momentum
+                (dataframe['macd'] < dataframe['macdsignal'])  # gubi momentum
             )
         )
         dataframe.loc[scalp_exit, 'exit_long'] = True
@@ -253,7 +254,7 @@ class Vrach_Ultimate_PRO(IStrategy):
             (dataframe['position_type'] == 'position') &
             (
                 (dataframe['rsi_14_1h'] > 65) &
-                (dataframe['macd_1h'] < dataframe['macdsignal_1h']) |
+                (dataframe['macd'] < dataframe['macdsignal']) |
                 (dataframe['volume'] < dataframe['volume'].rolling(10).mean())
             )
         )
@@ -276,7 +277,7 @@ class Vrach_Ultimate_PRO(IStrategy):
             (
                 (dataframe['rsi_14_4h'] > 75) |
                 (dataframe['adx_14_4h'] < dataframe['adx_14_4h'].shift(1)) |
-                (dataframe['macd_4h'] < dataframe['macdsignal_4h'])
+                (dataframe['macd'] < dataframe['macdsignal'])
             )
         )
         dataframe.loc[swing_exit, 'exit_long'] = True
@@ -287,7 +288,7 @@ class Vrach_Ultimate_PRO(IStrategy):
             (
                 (dataframe['rsi_14_1d'] > 80) |
                 (dataframe['close'] < dataframe['ema_200_1d']) |
-                (dataframe['macd_1d'] < dataframe['macdsignal_1d']) |
+                (dataframe['macd'] < dataframe['macdsignal']) |
                 (dataframe['obv_1d'] < dataframe['obv_1d'].shift(1))
             )
         )
@@ -366,7 +367,7 @@ class Vrach_Ultimate_PRO(IStrategy):
 
         # Swing slabi, prebaci ga u daytrade
         if current_type == 'swing':
-            if last['rsi_14_4h'] < 55 and last['macd_4h'] < last['macdsignal_4h']:
+            if last['rsi_14_4h'] < 55 and last['macd'] < last['macdsignal']:
                 trade.entry_tag = 'daytrade'
                 return "Switched swing -> daytrade"
 
@@ -378,7 +379,7 @@ class Vrach_Ultimate_PRO(IStrategy):
 
         # Ako scalp nije izašao ali momentum opada, prebaci ga u position
         if current_type == 'scalp':
-            if last['rsi_14_5m'] < 50 and last['macd_5m'] < last['macdsignal_5m']:
+            if last['rsi_14_5m'] < 50 and last['macd'] < last['macdsignal']:
                 trade.entry_tag = 'position'
                 return "Switched scalp -> position"
 
