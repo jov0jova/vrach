@@ -325,10 +325,6 @@ class Vrach_Ultimate_PRO(IStrategy):
         informative_4h = self.informative_4h_indicators(metadata)
         informative_1d = self.informative_1d_indicators(metadata)
 
-        if informative_1h.empty or 'bb_lower_1h' not in informative_1h.columns or \
-        informative_1h['bb_lower_1h'].empty:
-            return dataframe  # Preskoči signal ako nema podataka za 1h BB lower
-
         # ✅ SCALP TRADE
         scalp_cond = (
             (dataframe['rsi_14'] < 30) &
@@ -336,19 +332,18 @@ class Vrach_Ultimate_PRO(IStrategy):
             (dataframe['atr_14'] > dataframe['atr_14'].rolling(20).mean()) &
             (dataframe['volume'] > 0)
         )
-        dataframe.loc[scalp_cond, 'enter_long'] = True
-        dataframe.loc[scalp_cond, 'position_type'] = 'scalp'
+        dataframe.loc[scalp_cond, ['enter_long', 'enter_tag']] = (True, 'scalp')
+        dataframe.loc[scalp_cond, 'position_type'] = 'scalp'  # Zadržite i ovu liniju
 
         # ✅ POSITION TRADE
         position_cond = (
             (not informative_1h.empty and 'ema_50_1h' in informative_1h.columns and not informative_1h['ema_50_1h'].empty and informative_1h['ema_50_1h'].iloc[-1] < informative_1h['ema_200_1h'].iloc[-1]) &
-            (not informative_1h.empty and 'rsi_14_1h' in informative_1h.columns and not informative_1h['rsi_14_1h'].empty and informative_1h['rsi_14_1h'].iloc[-1] > 30) &
-            (not informative_1h.empty and 'rsi_14_1h' in informative_1h.columns and not informative_1h['rsi_14_1h'].empty and informative_1h['rsi_14_1h'].iloc[-1] < 50) &
+            (not informative_1h.empty and 'rsi_14_1h' in informative_1h.columns and not informative_1h['rsi_14_1h'].empty and informative_1h['rsi_14_1h'].iloc[-1] > 30) & (not informative_1h.empty and 'rsi_14_1h' in informative_1h.columns and not informative_1h['rsi_14_1h'].empty and informative_1h['rsi_14_1h'].iloc[-1] < 50) &
             (not informative_1h.empty and 'macd_1h' in informative_1h.columns and not informative_1h['macd_1h'].empty and informative_1h['macd_1h'].iloc[-1] > informative_1h['macd_signal_1h'].iloc[-1]) &
             (dataframe['volume'] > 0)
         )
-        dataframe.loc[position_cond, 'enter_long'] = True
-        dataframe.loc[position_cond, 'position_type'] = 'position'
+        dataframe.loc[position_cond, ['enter_long', 'enter_tag']] = (True, 'position')
+        dataframe.loc[position_cond, 'position_type'] = 'position'  # Zadržite i ovu liniju
 
         # ✅ DAYTRADE
         daytrade_cond = (
@@ -358,20 +353,19 @@ class Vrach_Ultimate_PRO(IStrategy):
             (not informative_1h.empty and 'obv_1h' in informative_1h.columns and not informative_1h['obv_1h'].empty and informative_1h['obv_1h'].iloc[-1] > informative_1h['obv_1h'].shift(1).iloc[-1]) &
             (dataframe['volume'] > 0)
         )
-        dataframe.loc[daytrade_cond, 'enter_long'] = True
-        dataframe.loc[daytrade_cond, 'position_type'] = 'daytrade'
+        dataframe.loc[daytrade_cond, ['enter_long', 'enter_tag']] = (True, 'daytrade')
+        dataframe.loc[daytrade_cond, 'position_type'] = 'daytrade'  # Zadržite i ovu liniju
 
         # ✅ SWING TRADE
         swing_cond = (
             (not informative_4h.empty and 'ema_200_4h' in informative_4h.columns and not informative_4h['ema_200_4h'].empty and informative_4h['ema_200_4h'].iloc[-1] > informative_4h['ema_200_4h'].shift(1).iloc[-1]) &
             (not informative_4h.empty and 'adx_14_4h' in informative_4h.columns and not informative_4h['adx_14_4h'].empty and informative_4h['adx_14_4h'].iloc[-1] > 25) &
             (not informative_4h.empty and 'macd_4h' in informative_4h.columns and not informative_4h['macd_4h'].empty and informative_4h['macd_4h'].iloc[-1] > 0) &
-            (not informative_4h.empty and 'rsi_14_4h' in informative_4h.columns and not informative_4h['rsi_14_4h'].empty and informative_4h['rsi_14_4h'].iloc[-1] > 40) &
-            (not informative_4h.empty and 'rsi_14_4h' in informative_4h.columns and not informative_4h['rsi_14_4h'].empty and informative_4h['rsi_14_4h'].iloc[-1] < 60) &
+            (not informative_4h.empty and 'rsi_14_4h' in informative_4h.columns and not informative_4h['rsi_14_4h'].empty and informative_4h['rsi_14_4h'].iloc[-1] > 40) & (not informative_4h.empty and 'rsi_14_4h' in informative_4h.columns and not informative_4h['rsi_14_4h'].empty and informative_4h['rsi_14_4h'].iloc[-1] < 60) &
             (dataframe['volume'] > 0)
         )
-        dataframe.loc[swing_cond, 'enter_long'] = True
-        dataframe.loc[swing_cond, 'position_type'] = 'swing'
+        dataframe.loc[swing_cond, ['enter_long', 'enter_tag']] = (True, 'swing')
+        dataframe.loc[swing_cond, 'position_type'] = 'swing'  # Zadržite i ovu liniju
 
         # ✅ LONG TERM
         long_cond = (
@@ -381,8 +375,8 @@ class Vrach_Ultimate_PRO(IStrategy):
             (not informative_1d.empty and 'bb_middle_1d' in informative_1d.columns and not informative_1d['bb_middle_1d'].empty and dataframe['close'] > informative_1d['bb_middle_1d'].iloc[-1]) &
             (dataframe['volume'] > 0)
         )
-        dataframe.loc[long_cond, 'enter_long'] = True
-        dataframe.loc[long_cond, 'position_type'] = 'long'
+        dataframe.loc[long_cond, ['enter_long', 'enter_tag']] = (True, 'long')
+        dataframe.loc[long_cond, 'position_type'] = 'long'  # Zadržite i ovu liniju
 
         return dataframe
 
@@ -395,6 +389,7 @@ class Vrach_Ultimate_PRO(IStrategy):
         informative_1d = self.informative_1d_indicators(metadata)
 
         dataframe['exit_long'] = False
+        dataframe['exit_tag'] = None  # Inicijalizujte kolonu exit_tag
 
         # SCALP: Brzi profiti — izlazi kad RSI pređe 70 ili dođe do BB gornje
         scalp_exit = (
@@ -405,7 +400,7 @@ class Vrach_Ultimate_PRO(IStrategy):
                 (dataframe['macd'] < dataframe['macd_signal'])  # gubi momentum
             )
         )
-        dataframe.loc[scalp_exit, 'exit_long'] = True
+        dataframe.loc[scalp_exit, ['exit_long', 'exit_tag']] = (True, 'scalp_exit')
 
         # POSITION: RSI previše visok, MACD se obrće, pad volumena
         position_exit = (
@@ -416,7 +411,7 @@ class Vrach_Ultimate_PRO(IStrategy):
                 (dataframe['volume'] < dataframe['volume'].rolling(10).mean())
             )
         )
-        dataframe.loc[position_exit, 'exit_long'] = True
+        dataframe.loc[position_exit, ['exit_long', 'exit_tag']] = (True, 'position_exit')
 
         # DAYTRADE: RSI > 70 ili BB upper, pad OBV = gubitak snage
         daytrade_exit = (
@@ -427,7 +422,7 @@ class Vrach_Ultimate_PRO(IStrategy):
                 (not informative_1h.empty and 'obv_1h' in informative_1h.columns and not informative_1h['obv_1h'].empty and informative_1h['obv_1h'].iloc[-1] < informative_1h['obv_1h'].shift(1).iloc[-1])
             )
         )
-        dataframe.loc[daytrade_exit, 'exit_long'] = True
+        dataframe.loc[daytrade_exit, ['exit_long', 'exit_tag']] = (True, 'daytrade_exit')
 
         # SWING: RSI > 75, ADX opada, MACD signal slabosti
         swing_exit = (
@@ -438,7 +433,7 @@ class Vrach_Ultimate_PRO(IStrategy):
                 (dataframe['macd'] < dataframe['macd_signal'])
             )
         )
-        dataframe.loc[swing_exit, 'exit_long'] = True
+        dataframe.loc[swing_exit, ['exit_long', 'exit_tag']] = (True, 'swing_exit')
 
         # LONG: RSI > 80, pad trenda, price ispod EMA200, obv pada
         long_exit = (
@@ -450,10 +445,10 @@ class Vrach_Ultimate_PRO(IStrategy):
                 (not informative_1d.empty and 'obv_1d' in informative_1d.columns and not informative_1d['obv_1d'].empty and informative_1d['obv_1d'].iloc[-1] < informative_1d['obv_1d'].shift(1).iloc[-1])
             )
         )
-        dataframe.loc[long_exit, 'exit_long'] = True
+        dataframe.loc[long_exit, ['exit_long', 'exit_tag']] = (True, 'long_exit')
 
         return dataframe
-
+'''
     def custom_exit(self, pair: str, trade: 'Trade', current_time: datetime, current_rate: float,
                     current_profit: float, metadata: dict, **kwargs):
         print(f"Poziva se custom_exit za par: {pair}, profit: {current_profit}")
@@ -552,3 +547,4 @@ class Vrach_Ultimate_PRO(IStrategy):
                 trade.entry_tag = 'position'
                 return "Switched scalp -> position"
         return None  # No change
+'''
