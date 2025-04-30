@@ -66,36 +66,36 @@ class Vrach_Ultimate_PRO(IStrategy):
     def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
 
         # === RSI Indicators ===
-        dataframe['rsi_14_5m'] = ta.RSI(dataframe['close'], timeperiod=14)
-        dataframe['rsi_6_5m'] = ta.RSI(dataframe['close'], timeperiod=6)
+        dataframe['rsi_14'] = ta.RSI(dataframe['close'], timeperiod=14)
+        dataframe['rsi_6'] = ta.RSI(dataframe['close'], timeperiod=6)
 
         # === EMA Indicators ===
-        dataframe['ema_20_5m'] = ta.EMA(dataframe['close'], timeperiod=20)
-        dataframe['ema_50_5m'] = ta.EMA(dataframe['close'], timeperiod=50)
-        dataframe['ema_200_5m'] = ta.EMA(dataframe['close'], timeperiod=200)
+        dataframe['ema_20'] = ta.EMA(dataframe['close'], timeperiod=20)
+        dataframe['ema_50'] = ta.EMA(dataframe['close'], timeperiod=50)
+        dataframe['ema_200'] = ta.EMA(dataframe['close'], timeperiod=200)
 
         # === MFI ===
-        dataframe['mfi_5m'] = ta.MFI(dataframe['high'], dataframe['low'], dataframe['close'], dataframe['volume'], timeperiod=14)
+        dataframe['mfi'] = ta.MFI(dataframe['high'], dataframe['low'], dataframe['close'], dataframe['volume'], timeperiod=14)
 
         # === MACD ===
         macd = ta.MACD(dataframe)
-        dataframe['macd_5m'] = macd['macd']  # Ili macd['macd'] ako vraća DataFrame/Series sa tim imenima
-        dataframe['macd_signal_5m'] = macd['macdsignal']# Ili macd['macdsignal']
-        dataframe['macd_histogram_5m'] = macd['macdhist'] # Ili macd['macd_histogram']
+        dataframe['macd'] = macd['macd']  # Ili macd['macd'] ako vraća DataFrame/Series sa tim imenima
+        dataframe['macd_signal'] = macd['macdsignal']# Ili macd['macdsignal']
+        dataframe['macd_histogram'] = macd['macdhist'] # Ili macd['macd_histogram']
 
         # === Bollinger Bands ===
-        dataframe['bb_upper_5m'] = ta.BBANDS(dataframe, nbdevup=2.0, nbdevdn=2.0)['upperband']
-        dataframe['bb_middle_5m'] = ta.BBANDS(dataframe, nbdevup=2.0, nbdevdn=2.0)['middleband']
-        dataframe['bb_lower_5m'] = ta.BBANDS(dataframe, nbdevup=2.0, nbdevdn=2.0)['lowerband']
+        dataframe['bb_upper'] = ta.BBANDS(dataframe, nbdevup=2.0, nbdevdn=2.0)['upperband']
+        dataframe['bb_middle'] = ta.BBANDS(dataframe, nbdevup=2.0, nbdevdn=2.0)['middleband']
+        dataframe['bb_lower'] = ta.BBANDS(dataframe, nbdevup=2.0, nbdevdn=2.0)['lowerband']
         
         # === ATR ===
-        dataframe['atr_14_5m'] = ta.ATR(dataframe['high'], dataframe['low'], dataframe['close'], timeperiod=14)
+        dataframe['atr_14'] = ta.ATR(dataframe['high'], dataframe['low'], dataframe['close'], timeperiod=14)
 
         # === ADX ===
-        dataframe['adx_14_5m'] = ta.ADX(dataframe,timeperiod=14)
+        dataframe['adx_14'] = ta.ADX(dataframe,timeperiod=14)
 
         # === OBV ===
-        dataframe['obv_5m'] = ta.OBV(dataframe)
+        dataframe['obv'] = ta.OBV(dataframe)
         # === Informative columns to help with filtering ===
         #dataframe['macd_cross_5m'] = np.where(dataframe['macd'] > dataframe['macd_signal'], 1, -1)
         #dataframe['price_above_ema_200_5m'] = np.where(dataframe['close'] > dataframe['ema_200'], 1, 0)
@@ -221,9 +221,9 @@ class Vrach_Ultimate_PRO(IStrategy):
         # ✅ SCALP TRADE
 
         scalp_cond = (
-            (dataframe['rsi_14_5m'] < 30) &
-            (dataframe['close'] < dataframe['bb_lower_5m']) &
-            (dataframe['atr_14_5m'] > dataframe['atr_14_5m'].rolling(20).mean()) &
+            (dataframe['rsi_14'] < 30) &
+            (dataframe['close'] < dataframe['bb_lower']) &
+            (dataframe['atr_14'] > dataframe['atr_14'].rolling(20).mean()) &
             (dataframe['volume'] > 0)
         )
         dataframe.loc[scalp_cond, 'enter_long'] = True
@@ -332,8 +332,8 @@ class Vrach_Ultimate_PRO(IStrategy):
         scalp_exit = (
             (dataframe['position_type'] == 'scalp') &
             (
-                (dataframe['rsi_14_5m'] > 70) |
-                (dataframe['close'] > dataframe['bb_upper_5m']) |
+                (dataframe['rsi_14'] > 70) |
+                (dataframe['close'] > dataframe['bb_upper']) |
                 (dataframe['macd'] < dataframe['macd_signal'])  # gubi momentum
             )
         )
@@ -560,7 +560,7 @@ class Vrach_Ultimate_PRO(IStrategy):
         
         # ===== SCALP -> POSITION =====
         if current_type == 'scalp':
-            if last['rsi_14_5m'] < 50 and last['macd_histogram_5m'] < 0:
+            if last['rsi_14'] < 50 and last['macd_histogram'] < 0:
                 trade.entry_tag = 'position'
                 return "Switched scalp -> position"
         return None  # No change
