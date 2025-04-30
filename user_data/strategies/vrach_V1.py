@@ -81,15 +81,15 @@ class Vrach_Ultimate_PRO(IStrategy):
 
         # === MACD ===
         macd = ta.MACD(dataframe['close'], fastperiod=12, slowperiod=26, signalperiod=9)
-        dataframe['macd_5m'] = macd[0]  # Ili macd['macd'] ako vraća DataFrame/Series sa tim imenima
-        dataframe['macd_signal_5m'] = macd[1] # Ili macd['macdsignal']
-        dataframe['macd_histogram_5m'] = macd[2] # Ili macd['macd_histogram']
+        dataframe['macd_5m'] = macd['macd']  # Ili macd['macd'] ako vraća DataFrame/Series sa tim imenima
+        dataframe['macd_signal_5m'] = macd['macdsignal']# Ili macd['macdsignal']
+        dataframe['macd_histogram_5m'] = macd['macd_histogram'] # Ili macd['macd_histogram']
 
         # === Bollinger Bands ===
         bb = ta.BBANDS(dataframe['close'], timeperiod=20, nbdevup=2.0, nbdevdn=2.0, matype=0)
-        dataframe['bb_upper_5m'] = bb[0]  # Assuming upper band is the first element
-        dataframe['bb_middle_5m'] = bb[1] # Assuming middle band is the second element
-        dataframe['bb_lower_5m'] = bb[2]  # Assuming lower band is the third element
+        dataframe['bb_upper_5m'] = bb['BBU_20_2.0']  # Assuming upper band is the first element
+        dataframe['bb_middle_5m'] = bb['BBM_20_2.0'] # Assuming middle band is the second element
+        dataframe['bb_lower_5m'] = bb['BBL_20_2.0']  # Assuming lower band is the third element
         
         # === ATR ===
         dataframe['atr_14_5m'] = ta.ATR(dataframe['high'], dataframe['low'], dataframe['close'], timeperiod=14)
@@ -123,15 +123,15 @@ class Vrach_Ultimate_PRO(IStrategy):
 
         # === MACD ===
         macd = ta.MACD(dataframe['close'], fastperiod=12, slowperiod=26, signalperiod=9)
-        dataframe['macd'] = macd[0]  # Ili macd['macd'] ako vraća DataFrame/Series sa tim imenima
-        dataframe['macd_signal'] = macd[1] # Ili macd['macdsignal']
-        dataframe['macd_histogram'] = macd[2] # Ili macd['macd_histogram']
+        dataframe['macd'] = macd['macd']  # Ili macd['macd'] ako vraća DataFrame/Series sa tim imenima
+        dataframe['macd_signal'] = macd['macdsignal']# Ili macd['macdsignal']
+        dataframe['macd_histogram'] = macd['macd_histogram'] # Ili macd['macd_histogram']
 
         # === Bollinger Bands ===
         bb = ta.BBANDS(dataframe['close'], timeperiod=20, nbdevup=2.0, nbdevdn=2.0, matype=0)
-        dataframe['bb_upper'] = bb[0]  # Assuming upper band is the first element
-        dataframe['bb_middle'] = bb[1] # Assuming middle band is the second element
-        dataframe['bb_lower'] = bb[2]  # Assuming lower band is the third element
+        dataframe['bb_upper'] = bb['BBU_20_2.0']  # Assuming upper band is the first element
+        dataframe['bb_middle'] = bb['BBM_20_2.0'] # Assuming middle band is the second element
+        dataframe['bb_lower'] = bb['BBL_20_2.0']  # Assuming lower band is the third element
         
         # === ATR ===
         dataframe['atr_14'] = ta.ATR(dataframe['high'], dataframe['low'], dataframe['close'], timeperiod=14)
