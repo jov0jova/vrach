@@ -84,10 +84,9 @@ class Vrach_Ultimate_PRO(IStrategy):
         dataframe['macd_histogram_5m'] = macd['macdhist'] # Ili macd['macd_histogram']
 
         # === Bollinger Bands ===
-        bb = ta.BBANDS(dataframe['close'], timeperiod=20, nbdevup=2.0, nbdevdn=2.0, matype=0)
-        dataframe['bb_upper_5m'] = bb['BBU_20_2.0']  # Assuming upper band is the first element
-        dataframe['bb_middle_5m'] = bb['BBM_20_2.0'] # Assuming middle band is the second element
-        dataframe['bb_lower_5m'] = bb['BBL_20_2.0']  # Assuming lower band is the third element
+        dataframe['bb_upper_5m'] = ta.BBANDS(dataframe, nbdevup=2, nbdevdn=2)['upperband']
+        dataframe['bb_middle_5m'] = ta.BBANDS(dataframe, nbdevup=2, nbdevdn=2)['middleband']
+        dataframe['bb_lower_5m'] = ta.BBANDS(dataframe, nbdevup=2, nbdevdn=2)['lowerband']
         
         # === ATR ===
         dataframe['atr_14_5m'] = ta.ATR(dataframe['high'], dataframe['low'], dataframe['close'], timeperiod=14)
@@ -127,9 +126,9 @@ class Vrach_Ultimate_PRO(IStrategy):
 
         # === Bollinger Bands ===
         bb = ta.BBANDS(dataframe['close'], timeperiod=20, nbdevup=2.0, nbdevdn=2.0, matype=0)
-        dataframe['bb_upper'] = bb['BBU_20_2.0']  # Assuming upper band is the first element
-        dataframe['bb_middle'] = bb['BBM_20_2.0'] # Assuming middle band is the second element
-        dataframe['bb_lower'] = bb['BBL_20_2.0']  # Assuming lower band is the third element
+        dataframe['bb_upper'] = ta.BBANDS(dataframe, nbdevup=2, nbdevdn=2)['upperband']
+        dataframe['bb_middle'] = ta.BBANDS(dataframe, nbdevup=2, nbdevdn=2)['middleband']
+        dataframe['bb_lower'] = ta.BBANDS(dataframe, nbdevup=2, nbdevdn=2)['lowerband']
         
         # === ATR ===
         dataframe['atr_14'] = ta.ATR(dataframe['high'], dataframe['low'], dataframe['close'], timeperiod=14)
