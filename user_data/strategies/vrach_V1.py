@@ -325,6 +325,10 @@ class Vrach_Ultimate_PRO(IStrategy):
         informative_4h = self.informative_4h_indicators(metadata)
         informative_1d = self.informative_1d_indicators(metadata)
 
+        if informative_1h.empty or 'bb_lower_1h' not in informative_1h.columns or \
+        informative_1h['bb_lower_1h'].empty:
+            return dataframe  # Preskoči signal ako nema podataka za 1h BB lower
+
         # ✅ SCALP TRADE
         scalp_cond = (
             (dataframe['rsi_14'] < 30) &
@@ -337,9 +341,10 @@ class Vrach_Ultimate_PRO(IStrategy):
 
         # ✅ POSITION TRADE
         position_cond = (
-            (informative_1h['ema_50_1h'].iloc[-1] < informative_1h['ema_200_1h'].iloc[-1]) &
-            (informative_1h['rsi_14_1h'].iloc[-1] > 30) & (informative_1h['rsi_14_1h'].iloc[-1] < 50) &
-            (informative_1h['macd_1h'].iloc[-1] > informative_1h['macd_signal_1h'].iloc[-1]) &
+            (not informative_1h.empty and 'ema_50_1h' in informative_1h.columns and not informative_1h['ema_50_1h'].empty and informative_1h['ema_50_1h'].iloc[-1] < informative_1h['ema_200_1h'].iloc[-1]) &
+            (not informative_1h.empty and 'rsi_14_1h' in informative_1h.columns and not informative_1h['rsi_14_1h'].empty and informative_1h['rsi_14_1h'].iloc[-1] > 30) &
+            (not informative_1h.empty and 'rsi_14_1h' in informative_1h.columns and not informative_1h['rsi_14_1h'].empty and informative_1h['rsi_14_1h'].iloc[-1] < 50) &
+            (not informative_1h.empty and 'macd_1h' in informative_1h.columns and not informative_1h['macd_1h'].empty and informative_1h['macd_1h'].iloc[-1] > informative_1h['macd_signal_1h'].iloc[-1]) &
             (dataframe['volume'] > 0)
         )
         dataframe.loc[position_cond, 'enter_long'] = True
@@ -347,10 +352,10 @@ class Vrach_Ultimate_PRO(IStrategy):
 
         # ✅ DAYTRADE
         daytrade_cond = (
-            (informative_1h['rsi_14_1h'].iloc[-1] < 40) &
-            (dataframe['close'] <= informative_1h['bb_lower_1h'].iloc[-1]) &
-            (informative_1h['macd_1h'].iloc[-1] > informative_1h['macd_signal_1h'].iloc[-1]) &
-            (informative_1h['obv_1h'].iloc[-1] > informative_1h['obv_1h'].shift(1).iloc[-1]) &
+            (not informative_1h.empty and 'rsi_14_1h' in informative_1h.columns and not informative_1h['rsi_14_1h'].empty and informative_1h['rsi_14_1h'].iloc[-1] < 40) &
+            (not informative_1h.empty and 'bb_lower_1h' in informative_1h.columns and not informative_1h['bb_lower_1h'].empty and dataframe['close'] <= informative_1h['bb_lower_1h'].iloc[-1]) &
+            (not informative_1h.empty and 'macd_1h' in informative_1h.columns and not informative_1h['macd_1h'].empty and informative_1h['macd_1h'].iloc[-1] > informative_1h['macd_signal_1h'].iloc[-1]) &
+            (not informative_1h.empty and 'obv_1h' in informative_1h.columns and not informative_1h['obv_1h'].empty and informative_1h['obv_1h'].iloc[-1] > informative_1h['obv_1h'].shift(1).iloc[-1]) &
             (dataframe['volume'] > 0)
         )
         dataframe.loc[daytrade_cond, 'enter_long'] = True
@@ -358,10 +363,11 @@ class Vrach_Ultimate_PRO(IStrategy):
 
         # ✅ SWING TRADE
         swing_cond = (
-            (informative_4h['ema_200_4h'].iloc[-1] > informative_4h['ema_200_4h'].shift(1).iloc[-1]) &
-            (informative_4h['adx_14_4h'].iloc[-1] > 25) &
-            (informative_4h['macd_4h'].iloc[-1] > 0) &
-            (informative_4h['rsi_14_4h'].iloc[-1] > 40) & (informative_4h['rsi_14_4h'].iloc[-1] < 60) &
+            (not informative_4h.empty and 'ema_200_4h' in informative_4h.columns and not informative_4h['ema_200_4h'].empty and informative_4h['ema_200_4h'].iloc[-1] > informative_4h['ema_200_4h'].shift(1).iloc[-1]) &
+            (not informative_4h.empty and 'adx_14_4h' in informative_4h.columns and not informative_4h['adx_14_4h'].empty and informative_4h['adx_14_4h'].iloc[-1] > 25) &
+            (not informative_4h.empty and 'macd_4h' in informative_4h.columns and not informative_4h['macd_4h'].empty and informative_4h['macd_4h'].iloc[-1] > 0) &
+            (not informative_4h.empty and 'rsi_14_4h' in informative_4h.columns and not informative_4h['rsi_14_4h'].empty and informative_4h['rsi_14_4h'].iloc[-1] > 40) &
+            (not informative_4h.empty and 'rsi_14_4h' in informative_4h.columns and not informative_4h['rsi_14_4h'].empty and informative_4h['rsi_14_4h'].iloc[-1] < 60) &
             (dataframe['volume'] > 0)
         )
         dataframe.loc[swing_cond, 'enter_long'] = True
@@ -369,17 +375,16 @@ class Vrach_Ultimate_PRO(IStrategy):
 
         # ✅ LONG TERM
         long_cond = (
-            (informative_1d['ema_200_1d'].iloc[-1] > informative_1d['ema_200_1d'].shift(1).iloc[-1]) &
-            (informative_1d['rsi_14_1d'].iloc[-1] > 50) &
-            (informative_1d['macd_1d'].iloc[-1] > informative_1d['macd_signal_1d'].iloc[-1]) &
-            (dataframe['close'] > informative_1d['bb_middle_1d'].iloc[-1]) &
+            (not informative_1d.empty and 'ema_200_1d' in informative_1d.columns and not informative_1d['ema_200_1d'].empty and informative_1d['ema_200_1d'].iloc[-1] > informative_1d['ema_200_1d'].shift(1).iloc[-1]) &
+            (not informative_1d.empty and 'rsi_14_1d' in informative_1d.columns and not informative_1d['rsi_14_1d'].empty and informative_1d['rsi_14_1d'].iloc[-1] > 50) &
+            (not informative_1d.empty and 'macd_1d' in informative_1d.columns and not informative_1d['macd_1d'].empty and informative_1d['macd_1d'].iloc[-1] > informative_1d['macd_signal_1d'].iloc[-1]) &
+            (not informative_1d.empty and 'bb_middle_1d' in informative_1d.columns and not informative_1d['bb_middle_1d'].empty and dataframe['close'] > informative_1d['bb_middle_1d'].iloc[-1]) &
             (dataframe['volume'] > 0)
         )
         dataframe.loc[long_cond, 'enter_long'] = True
         dataframe.loc[long_cond, 'position_type'] = 'long'
 
         return dataframe
-
 
     def populate_exit_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         if dataframe.empty:
