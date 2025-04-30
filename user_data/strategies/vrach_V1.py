@@ -179,11 +179,6 @@ class Vrach_Ultimate_PRO(IStrategy):
             return dataframe
 
         # ✅ Učitavanje i preimenovanje indikatora odmah na početku
-        informative_5m = self.informative_5m_indicators(metadata).rename(columns={
-            "rsi_14": "rsi_14_5m",
-            "bb_lower": "bb_lower_5m",
-            "atr_14": "atr_14_5m"
-        })
 
         informative_1h = self.informative_1h_indicators(metadata).rename(columns={
             "ema_50": "ema_50_1h",
@@ -210,11 +205,21 @@ class Vrach_Ultimate_PRO(IStrategy):
             "bb_middle": "bb_middle_1d"
         })
 
-        # ✅ SCALP TRADE
         dataframe = dataframe.merge(
-            informative_5m[["rsi_14_5m", "bb_lower_5m", "atr_14_5m"]],
+            informative_1h[["ema_50_1h", "ema_200_1h", "rsi_14_1h", "macd_1h", "macd_signal_1h","bb_lower_1h", "obv_1h"]],
             left_index=True, right_index=True, how='left'
         )
+        dataframe = dataframe.merge(
+            informative_4h[["ema_200_4h", "adx_14_4h", "macd_4h", "rsi_14_4h"]],
+            left_index=True, right_index=True, how='left'
+        )
+        dataframe = dataframe.merge(
+            informative_1d[["ema_200_1d", "rsi_14_1d", "macd_1d", "macd_signal_1d", "bb_middle_1d"]],
+            left_index=True, right_index=True, how='left'
+        )
+
+        # ✅ SCALP TRADE
+
         scalp_cond = (
             (dataframe['rsi_14_5m'] < 30) &
             (dataframe['close'] < dataframe['bb_lower_5m']) &
@@ -225,10 +230,7 @@ class Vrach_Ultimate_PRO(IStrategy):
         dataframe.loc[scalp_cond, 'position_type'] = 'scalp'
 
         # ✅ POSITION TRADE
-        dataframe = dataframe.merge(
-            informative_1h[["ema_50_1h", "ema_200_1h", "rsi_14_1h", "macd_1h", "macd_signal_1h"]],
-            left_index=True, right_index=True, how='left'
-        )
+
         position_cond = (
             (dataframe['ema_50_1h'] < dataframe['ema_200_1h']) &
             (dataframe['rsi_14_1h'] > 30) & (dataframe['rsi_14_1h'] < 50) &
@@ -239,10 +241,7 @@ class Vrach_Ultimate_PRO(IStrategy):
         dataframe.loc[position_cond, 'position_type'] = 'position'
 
         # ✅ DAYTRADE
-        dataframe = dataframe.merge(
-            informative_1h[["bb_lower_1h", "obv_1h"]],
-            left_index=True, right_index=True, how='left'
-        )
+
         daytrade_cond = (
             (dataframe['rsi_14_1h'] < 40) &
             (dataframe['close'] <= dataframe['bb_lower_1h']) &
@@ -254,10 +253,7 @@ class Vrach_Ultimate_PRO(IStrategy):
         dataframe.loc[daytrade_cond, 'position_type'] = 'daytrade'
 
         # ✅ SWING TRADE
-        dataframe = dataframe.merge(
-            informative_4h[["ema_200_4h", "adx_14_4h", "macd_4h", "rsi_14_4h"]],
-            left_index=True, right_index=True, how='left'
-        )
+
         swing_cond = (
             (dataframe['ema_200_4h'] > dataframe['ema_200_4h'].shift(1)) &
             (dataframe['adx_14_4h'] > 25) &
@@ -269,10 +265,6 @@ class Vrach_Ultimate_PRO(IStrategy):
         dataframe.loc[swing_cond, 'position_type'] = 'swing'
 
         # ✅ LONG TERM
-        dataframe = dataframe.merge(
-            informative_1d[["ema_200_1d", "rsi_14_1d", "macd_1d", "macd_signal_1d", "bb_middle_1d"]],
-            left_index=True, right_index=True, how='left'
-        )
         long_cond = (
             (dataframe['ema_200_1d'] > dataframe['ema_200_1d'].shift(1)) &
             (dataframe['rsi_14_1d'] > 50) &
@@ -290,9 +282,36 @@ class Vrach_Ultimate_PRO(IStrategy):
         if dataframe.empty:
             return dataframe
         # Dodavanje indikatora sa različitim vremenskim okvirima
-        informative_1h = self.informative_1h_indicators(metadata)
-        informative_4h = self.informative_4h_indicators(metadata)
-        informative_1d = self.informative_1d_indicators(metadata)
+        # ✅ Učitavanje i preimenovanje indikatora odmah na početku
+
+        informative_1h = self.informative_1h_indicators(metadata).rename(columns={
+            "ema_50": "ema_50_1h",
+            "ema_200": "ema_200_1h",
+            "rsi_14": "rsi_14_1h",
+            "macd": "macd_1h",
+            "macd_signal": "macd_signal_1h",
+            "bb_lower": "bb_lower_1h",
+            "obv": "obv_1h",
+            "bb_upper":"bb_upper_1h"
+        })
+
+        informative_4h = self.informative_4h_indicators(metadata).rename(columns={
+            "ema_200": "ema_200_4h",
+            "adx_14": "adx_14_4h",
+            "macd": "macd_4h",
+            "rsi_14": "rsi_14_4h",
+            "macd_signal":"macd_signal_4h"
+        })
+
+        informative_1d = self.informative_1d_indicators(metadata).rename(columns={
+            "ema_200": "ema_200_1d",
+            "rsi_14": "rsi_14_1d",
+            "macd": "macd_1d",
+            "macd_signal": "macd_signal_1d",
+            "bb_middle": "bb_middle_1d",
+            "adx_14":"adx_14_1d",
+            "obv": "obv_1d"
+        })
 
         dataframe = dataframe.merge(
             informative_1h[["rsi_14", "bb_upper", "macd", "macd_signal", "obv"]],
@@ -307,7 +326,7 @@ class Vrach_Ultimate_PRO(IStrategy):
             left_index=True, right_index=True, how='left', suffixes=("", "_1d")
         )
 
-        
+
         dataframe['exit_long'] = False
         # SCALP: Brzi profiti — izlazi kad RSI pređe 70 ili dođe do BB gornje
         scalp_exit = (
@@ -366,29 +385,59 @@ class Vrach_Ultimate_PRO(IStrategy):
 
 
     def custom_exit(self, pair: str, trade: 'Trade', current_time: datetime, current_rate: float,
-                    current_profit: float, **kwargs):
+                    current_profit: float,metadata: dict, **kwargs):
 
         dataframe, _ = self.dp.get_analyzed_dataframe(pair, self.timeframe)
         if dataframe is None or dataframe.empty:
             return None
 
-        # Dodavanje indikatora sa različitim vremenskim okvirima
-        informative_1h = self.informative_1h_indicators(kwargs)
-        informative_4h = self.informative_4h_indicators(kwargs)
-        informative_1d = self.informative_1d_indicators(kwargs)
-        
+        informative_1h = self.informative_1h_indicators(metadata).rename(columns={
+            "ema_50": "ema_50_1h",
+            "ema_200": "ema_200_1h",
+            "rsi_14": "rsi_14_1h",
+            "macd": "macd_1h",
+            "macd_signal": "macd_signal_1h",
+            "bb_lower": "bb_lower_1h",
+            "obv": "obv_1h",
+            "bb_upper":"bb_upper_1h",
+            "macd_histogram":"macd_histogram_1h"
+        })
+
+        informative_4h = self.informative_4h_indicators(metadata).rename(columns={
+            "ema_50":"ema_50_4h",
+            "ema_200": "ema_200_4h",
+            "adx_14": "adx_14_4h",
+            "macd": "macd_4h",
+            "rsi_14": "rsi_14_4h",
+            "macd_signal":"macd_signal_4h",
+            "macd_histogram":"macd_histogram_4h"
+        })
+
+        informative_1d = self.informative_1d_indicators(metadata).rename(columns={
+            "ema_50":"ema_50_1d",
+            "ema_200": "ema_200_1d",
+            "rsi_14": "rsi_14_1d",
+            "macd": "macd_1d",
+            "macd_signal": "macd_signal_1d",
+            "bb_middle": "bb_middle_1d",
+            "adx_14":"adx_14_1d",
+            "obv": "obv_1d",
+            "macd_histogram":"macd_histogram_1d"
+        })
+
         dataframe = dataframe.merge(
-            informative_1h[["rsi_14", "macd_histogram", "ema_50", "ema_200"]],
+            informative_1h[["rsi_14", "bb_upper", "macd", "macd_signal", "obv", "macd_histogram", "ema_50", "ema_200"]],
             left_index=True, right_index=True, how='left', suffixes=("", "_1h")
         )
         dataframe = dataframe.merge(
-            informative_4h[["rsi_14", "macd_histogram", "ema_50", "ema_200"]],
+            informative_4h[["rsi_14", "adx_14", "macd", "macd_signal", "macd_histogram", "ema_50", "ema_200"]],
             left_index=True, right_index=True, how='left', suffixes=("", "_4h")
         )
         dataframe = dataframe.merge(
-            informative_1d[["rsi_14", "macd_histogram", "ema_50", "ema_200"]],
+            informative_1d[["rsi_14", "ema_200", "macd", "macd_signal", "obv", "macd_histogram", "ema_50"]],
             left_index=True, right_index=True, how='left', suffixes=("", "_1d")
         )
+        
         last_candle = dataframe.iloc[-1]
 
         # ===== RISK MANAGEMENT =====
@@ -442,15 +491,45 @@ class Vrach_Ultimate_PRO(IStrategy):
             return "quick_scalp_exit"
         return None  # default: ne menjaj ništa
     
-    def adjust_trade_position_type(self, trade: 'Trade', dataframe: DataFrame,**kwargs):
+    def adjust_trade_position_type(self, trade: 'Trade', dataframe: DataFrame,metadata: dict,**kwargs):
         
         last = dataframe.iloc[-1]
         current_type = trade.entry_tag
         
         # Dodavanje indikatora sa različitim vremenskim okvirima
-        informative_1h = self.informative_1h_indicators(kwargs)
-        informative_4h = self.informative_4h_indicators(kwargs)
-        informative_1d = self.informative_1d_indicators(kwargs)
+        informative_1h = self.informative_1h_indicators(metadata).rename(columns={
+            "ema_50": "ema_50_1h",
+            "ema_200": "ema_200_1h",
+            "rsi_14": "rsi_14_1h",
+            "macd": "macd_1h",
+            "macd_signal": "macd_signal_1h",
+            "bb_lower": "bb_lower_1h",
+            "obv": "obv_1h",
+            "bb_upper":"bb_upper_1h",
+            "macd_histogram":"macd_histogram_1h"
+        })
+
+        informative_4h = self.informative_4h_indicators(metadata).rename(columns={
+            "ema_50":"ema_50_4h",
+            "ema_200": "ema_200_4h",
+            "adx_14": "adx_14_4h",
+            "macd": "macd_4h",
+            "rsi_14": "rsi_14_4h",
+            "macd_signal":"macd_signal_4h",
+            "macd_histogram":"macd_histogram_4h"
+        })
+
+        informative_1d = self.informative_1d_indicators(metadata).rename(columns={
+            "ema_50":"ema_50_1d",
+            "ema_200": "ema_200_1d",
+            "rsi_14": "rsi_14_1d",
+            "macd": "macd_1d",
+            "macd_signal": "macd_signal_1d",
+            "bb_middle": "bb_middle_1d",
+            "adx_14":"adx_14_1d",
+            "obv": "obv_1d",
+            "macd_histogram":"macd_histogram_1d"
+        })
         
 
         dataframe = dataframe.merge(
