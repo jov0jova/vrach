@@ -81,7 +81,7 @@ class Vrach_Ultimate_PRO(IStrategy):
         macd = ta.MACD(dataframe)
         dataframe['macd_5m'] = macd['macd']  # Ili macd['macd'] ako vraća DataFrame/Series sa tim imenima
         dataframe['macd_signal_5m'] = macd['macdsignal']# Ili macd['macdsignal']
-        dataframe['macd_histogram_5m'] = macd['macd_histogram'] # Ili macd['macd_histogram']
+        dataframe['macd_histogram_5m'] = macd['macdhist'] # Ili macd['macd_histogram']
 
         # === Bollinger Bands ===
         bb = ta.BBANDS(dataframe['close'], timeperiod=20, nbdevup=2.0, nbdevdn=2.0, matype=0)
@@ -123,7 +123,7 @@ class Vrach_Ultimate_PRO(IStrategy):
         macd = ta.MACD(dataframe)
         dataframe['macd'] = macd['macd']  # Ili macd['macd'] ako vraća DataFrame/Series sa tim imenima
         dataframe['macd_signal'] = macd['macdsignal']# Ili macd['macdsignal']
-        dataframe['macd_histogram'] = macd['macd_histogram'] # Ili macd['macd_histogram']
+        dataframe['macd_histogram'] = macd['macdhist'] # Ili macd['macd_histogram']
 
         # === Bollinger Bands ===
         bb = ta.BBANDS(dataframe['close'], timeperiod=20, nbdevup=2.0, nbdevdn=2.0, matype=0)
