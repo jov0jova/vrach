@@ -204,6 +204,8 @@ class Vrach_Ultimate_PRO(IStrategy):
             "macd_signal": "macd_signal_1d",
             "bb_middle": "bb_middle_1d"
         })
+        if informative_1h.empty or informative_4h.empty or informative_1d.empty:
+            print("Cols in informative_1h:", informative_1h.columns.tolist())
 
         dataframe = dataframe.merge(
             informative_1h[["ema_50_1h", "ema_200_1h", "rsi_14_1h", "macd_1h", "macd_signal_1h","bb_lower_1h", "obv_1h"]],
