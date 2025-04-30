@@ -337,9 +337,9 @@ class Vrach_Ultimate_PRO(IStrategy):
 
         # ✅ POSITION TRADE
         position_cond = (
-            (informative_1h['ema_50_1h'] < informative_1h['ema_200_1h']) &
-            (informative_1h['rsi_14_1h'] > 30) & (informative_1h['rsi_14_1h'] < 50) &
-            (informative_1h['macd_1h'] > informative_1h['macd_signal_1h']) &
+            (informative_1h['ema_50_1h'].iloc[-1] < informative_1h['ema_200_1h'].iloc[-1]) &
+            (informative_1h['rsi_14_1h'].iloc[-1] > 30) & (informative_1h['rsi_14_1h'].iloc[-1] < 50) &
+            (informative_1h['macd_1h'].iloc[-1] > informative_1h['macd_signal_1h'].iloc[-1]) &
             (dataframe['volume'] > 0)
         )
         dataframe.loc[position_cond, 'enter_long'] = True
@@ -347,10 +347,10 @@ class Vrach_Ultimate_PRO(IStrategy):
 
         # ✅ DAYTRADE
         daytrade_cond = (
-            (informative_1h['rsi_14_1h'] < 40) &
-            (dataframe['close'] <= informative_1h['bb_lower_1h']) &
-            (informative_1h['macd_1h'] > informative_1h['macd_signal_1h']) &
-            (informative_1h['obv_1h'] > informative_1h['obv_1h'].shift(1)) &
+            (informative_1h['rsi_14_1h'].iloc[-1] < 40) &
+            (dataframe['close'] <= informative_1h['bb_lower_1h'].iloc[-1]) &
+            (informative_1h['macd_1h'].iloc[-1] > informative_1h['macd_signal_1h'].iloc[-1]) &
+            (informative_1h['obv_1h'].iloc[-1] > informative_1h['obv_1h'].shift(1).iloc[-1]) &
             (dataframe['volume'] > 0)
         )
         dataframe.loc[daytrade_cond, 'enter_long'] = True
@@ -358,10 +358,10 @@ class Vrach_Ultimate_PRO(IStrategy):
 
         # ✅ SWING TRADE
         swing_cond = (
-            (informative_4h['ema_200_4h'] > informative_4h['ema_200_4h'].shift(1)) &
-            (informative_4h['adx_14_4h'] > 25) &
-            (informative_4h['macd_4h'] > 0) &
-            (informative_4h['rsi_14_4h'] > 40) & (informative_4h['rsi_14_4h'] < 60) &
+            (informative_4h['ema_200_4h'].iloc[-1] > informative_4h['ema_200_4h'].shift(1).iloc[-1]) &
+            (informative_4h['adx_14_4h'].iloc[-1] > 25) &
+            (informative_4h['macd_4h'].iloc[-1] > 0) &
+            (informative_4h['rsi_14_4h'].iloc[-1] > 40) & (informative_4h['rsi_14_4h'].iloc[-1] < 60) &
             (dataframe['volume'] > 0)
         )
         dataframe.loc[swing_cond, 'enter_long'] = True
@@ -369,10 +369,10 @@ class Vrach_Ultimate_PRO(IStrategy):
 
         # ✅ LONG TERM
         long_cond = (
-            (informative_1d['ema_200_1d'] > informative_1d['ema_200_1d'].shift(1)) &
-            (informative_1d['rsi_14_1d'] > 50) &
-            (informative_1d['macd_1d'] > informative_1d['macd_signal_1d']) &
-            (dataframe['close'] > informative_1d['bb_middle_1d']) &
+            (informative_1d['ema_200_1d'].iloc[-1] > informative_1d['ema_200_1d'].shift(1).iloc[-1]) &
+            (informative_1d['rsi_14_1d'].iloc[-1] > 50) &
+            (informative_1d['macd_1d'].iloc[-1] > informative_1d['macd_signal_1d'].iloc[-1]) &
+            (dataframe['close'] > informative_1d['bb_middle_1d'].iloc[-1]) &
             (dataframe['volume'] > 0)
         )
         dataframe.loc[long_cond, 'enter_long'] = True
