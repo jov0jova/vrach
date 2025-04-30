@@ -78,7 +78,7 @@ class Vrach_Ultimate_PRO(IStrategy):
         dataframe['mfi_5m'] = ta.MFI(dataframe['high'], dataframe['low'], dataframe['close'], dataframe['volume'], timeperiod=14)
 
         # === MACD ===
-        macd = ta.MACD(dataframe['close'], fastperiod=12, slowperiod=26, signalperiod=9)
+        macd = ta.MACD(dataframe)
         dataframe['macd_5m'] = macd['macd']  # Ili macd['macd'] ako vraća DataFrame/Series sa tim imenima
         dataframe['macd_signal_5m'] = macd['macdsignal']# Ili macd['macdsignal']
         dataframe['macd_histogram_5m'] = macd['macd_histogram'] # Ili macd['macd_histogram']
@@ -120,7 +120,7 @@ class Vrach_Ultimate_PRO(IStrategy):
         dataframe['mfi'] = ta.MFI(dataframe['high'], dataframe['low'], dataframe['close'], dataframe['volume'], timeperiod=14)
 
         # === MACD ===
-        macd = ta.MACD(dataframe['close'], fastperiod=12, slowperiod=26, signalperiod=9)
+        macd = ta.MACD(dataframe)
         dataframe['macd'] = macd['macd']  # Ili macd['macd'] ako vraća DataFrame/Series sa tim imenima
         dataframe['macd_signal'] = macd['macdsignal']# Ili macd['macdsignal']
         dataframe['macd_histogram'] = macd['macd_histogram'] # Ili macd['macd_histogram']
