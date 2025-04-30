@@ -92,10 +92,10 @@ class Vrach_Ultimate_PRO(IStrategy):
         dataframe['atr_14_5m'] = ta.ATR(dataframe['high'], dataframe['low'], dataframe['close'], timeperiod=14)
 
         # === ADX ===
-        dataframe['adx_14_5m'] = dataframe.ta.adx(length=14)['ADX_14']
+        dataframe['adx_14_5m'] = ta.ADX(dataframe,timeperiod=14)
 
         # === OBV ===
-        dataframe['obv_5m'] = dataframe.ta.obv()
+        dataframe['obv_5m'] = ta.OBV(dataframe)
         # === Informative columns to help with filtering ===
         #dataframe['macd_cross_5m'] = np.where(dataframe['macd'] > dataframe['macd_signal'], 1, -1)
         #dataframe['price_above_ema_200_5m'] = np.where(dataframe['close'] > dataframe['ema_200'], 1, 0)
@@ -138,10 +138,10 @@ class Vrach_Ultimate_PRO(IStrategy):
         dataframe['atr_14'] = ta.ATR(dataframe['high'], dataframe['low'], dataframe['close'], timeperiod=14)
 
         # === ADX ===
-        dataframe['adx_14'] = dataframe.ta.adx(length=14)['ADX_14']
+        dataframe['adx_14'] = ta.ADX(dataframe,timeperiod=14)
 
         # === OBV ===
-        dataframe['obv'] = dataframe.ta.obv()
+        dataframe['obv'] = ta.OBV(dataframe)
 
         # === Informative columns to help with filtering ===
         #dataframe['macd_cross'] = np.where(dataframe['macd'] > dataframe['macd_signal'], 1, -1)
