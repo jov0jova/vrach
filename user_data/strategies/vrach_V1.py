@@ -199,7 +199,7 @@ class Vrach_Ultimate_PRO(IStrategy):
 
         informative_1d = self.informative_1d_indicators(metadata).rename(columns={
             "ema_200": "ema_200_1d",
-            "rsi": "rsi_14_1d",
+            "rsi_14": "rsi_14_1d",
             "macd": "macd_1d",
             "macd_signal": "macd_signal_1d",
             "bb_middle": "bb_middle_1d"
