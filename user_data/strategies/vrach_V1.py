@@ -12,11 +12,9 @@ ________________________________________________________________________________
 
 import numpy as np
 import talib.abstract as ta
-import pandas as pd
+from pandas import DataFrame
+import freqtrade.vendor.qtpylib.indicators as qtpylib
 from freqtrade.strategy.interface import IStrategy
-from freqtrade.strategy import merge_informative_pair
-from pandas import DataFrame, Series
-from functools import reduce
 from freqtrade.persistence import Trade
 from datetime import datetime, timedelta
 from typing import Optional
