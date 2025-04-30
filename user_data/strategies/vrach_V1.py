@@ -456,7 +456,9 @@ class Vrach_Ultimate_PRO(IStrategy):
 
     def custom_exit(self, pair: str, trade: 'Trade', current_time: datetime, current_rate: float,
                     current_profit: float, metadata: dict, **kwargs):
-
+        print(f"Poziva se custom_exit za par: {pair}, profit: {current_profit}")
+        print(f"Tip metadata: {type(metadata)}, Sadržaj metadata: {metadata}")
+        print(f"Dodatni argumenti (kwargs): {kwargs}")
         dataframe, _ = self.dp.get_analyzed_dataframe(pair, self.timeframe)
         if dataframe is None or dataframe.empty:
             return None
