@@ -84,9 +84,9 @@ class Vrach_Ultimate_PRO(IStrategy):
         dataframe['macd_histogram_5m'] = macd['macdhist'] # Ili macd['macd_histogram']
 
         # === Bollinger Bands ===
-        dataframe['bb_upper_5m'] = ta.BBANDS(dataframe, nbdevup=2, nbdevdn=2)['upperband']
-        dataframe['bb_middle_5m'] = ta.BBANDS(dataframe, nbdevup=2, nbdevdn=2)['middleband']
-        dataframe['bb_lower_5m'] = ta.BBANDS(dataframe, nbdevup=2, nbdevdn=2)['lowerband']
+        dataframe['bb_upper_5m'] = ta.BBANDS(dataframe, nbdevup=2.0, nbdevdn=2.0)['upperband']
+        dataframe['bb_middle_5m'] = ta.BBANDS(dataframe, nbdevup=2.0, nbdevdn=2.0)['middleband']
+        dataframe['bb_lower_5m'] = ta.BBANDS(dataframe, nbdevup=2.0, nbdevdn=2.0)['lowerband']
         
         # === ATR ===
         dataframe['atr_14_5m'] = ta.ATR(dataframe['high'], dataframe['low'], dataframe['close'], timeperiod=14)
@@ -125,10 +125,9 @@ class Vrach_Ultimate_PRO(IStrategy):
         dataframe['macd_histogram'] = macd['macdhist'] # Ili macd['macd_histogram']
 
         # === Bollinger Bands ===
-        bb = ta.BBANDS(dataframe['close'], timeperiod=20, nbdevup=2.0, nbdevdn=2.0, matype=0)
-        dataframe['bb_upper'] = ta.BBANDS(dataframe, nbdevup=2, nbdevdn=2)['upperband']
-        dataframe['bb_middle'] = ta.BBANDS(dataframe, nbdevup=2, nbdevdn=2)['middleband']
-        dataframe['bb_lower'] = ta.BBANDS(dataframe, nbdevup=2, nbdevdn=2)['lowerband']
+        dataframe['bb_upper'] = ta.BBANDS(dataframe, nbdevup=2.0, nbdevdn=2.0)['upperband']
+        dataframe['bb_middle'] = ta.BBANDS(dataframe, nbdevup=2.0, nbdevdn=2.0)['middleband']
+        dataframe['bb_lower'] = ta.BBANDS(dataframe, nbdevup=2.0, nbdevdn=2.0)['lowerband']
         
         # === ATR ===
         dataframe['atr_14'] = ta.ATR(dataframe['high'], dataframe['low'], dataframe['close'], timeperiod=14)
