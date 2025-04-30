@@ -174,12 +174,47 @@ class Vrach_Ultimate_PRO(IStrategy):
         return self.informative_indicators(metadata, "1w")
 
     def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
-        
+
         if dataframe.empty:
             return dataframe
-        
-        # ✅ SCALP TRADE — RSI oversold + BB touch + high volatility
-        # Koristimo informative_5m (5 minuta) indikator
+
+        # ✅ Učitavanje i preimenovanje indikatora odmah na početku
+        informative_5m = self.informative_5m_indicators(metadata).rename(columns={
+            "rsi_14": "rsi_14_5m",
+            "bb_lower": "bb_lower_5m",
+            "atr_14": "atr_14_5m"
+        })
+
+        informative_1h = self.informative_1h_indicators(metadata).rename(columns={
+            "ema_50": "ema_50_1h",
+            "ema_200": "ema_200_1h",
+            "rsi_14": "rsi_14_1h",
+            "macd": "macd_1h",
+            "macd_signal": "macd_signal_1h",
+            "bb_lower": "bb_lower_1h",
+            "obv": "obv_1h"
+        })
+
+        informative_4h = self.informative_4h_indicators(metadata).rename(columns={
+            "ema_200": "ema_200_4h",
+            "adx_14": "adx_14_4h",
+            "macd": "macd_4h",
+            "rsi_14": "rsi_14_4h"
+        })
+
+        informative_1d = self.informative_1d_indicators(metadata).rename(columns={
+            "ema_200": "ema_200_1d",
+            "rsi": "rsi_14_1d",
+            "macd": "macd_1d",
+            "macd_signal": "macd_signal_1d",
+            "bb_middle": "bb_middle_1d"
+        })
+
+        # ✅ SCALP TRADE
+        dataframe = dataframe.merge(
+            informative_5m[["rsi_14_5m", "bb_lower_5m", "atr_14_5m"]],
+            left_index=True, right_index=True, how='left'
+        )
         scalp_cond = (
             (dataframe['rsi_14_5m'] < 30) &
             (dataframe['close'] < dataframe['bb_lower_5m']) &
@@ -188,35 +223,26 @@ class Vrach_Ultimate_PRO(IStrategy):
         )
         dataframe.loc[scalp_cond, 'enter_long'] = True
         dataframe.loc[scalp_cond, 'position_type'] = 'scalp'
-        
-        # ✅ POSITION TRADE — EMA50 < EMA200 + RSI recovery + MACD crossover
-        # Koristimo informative_1h (1 sat) indikator
-        informative_1h = self.informative_1h_indicators(metadata)
-        
+
+        # ✅ POSITION TRADE
         dataframe = dataframe.merge(
-            informative_1h[["ema_50", "ema_200", "rsi_14", "macd", "macd_signal"]],
-            left_index=True, right_index=True, how='left', suffixes=("", "_1h")
+            informative_1h[["ema_50_1h", "ema_200_1h", "rsi_14_1h", "macd_1h", "macd_signal_1h"]],
+            left_index=True, right_index=True, how='left'
         )
-        
         position_cond = (
             (dataframe['ema_50_1h'] < dataframe['ema_200_1h']) &
-            (dataframe['rsi_14_1h'] > 30) & (dataframe['rsi_1h'] < 50) &
+            (dataframe['rsi_14_1h'] > 30) & (dataframe['rsi_14_1h'] < 50) &
             (dataframe['macd_1h'] > dataframe['macd_signal_1h']) &
             (dataframe['volume'] > 0)
         )
         dataframe.loc[position_cond, 'enter_long'] = True
         dataframe.loc[position_cond, 'position_type'] = 'position'
 
-        # ✅ DAYTRADE — Trend reversal: RSI < 40 + BB lower bounce + MACD up + OBV rising
-        # Koristimo informative_1h (1 sat) indikator
-        
-        informative_1h = self.informative_1h_indicators(metadata)
-        
+        # ✅ DAYTRADE
         dataframe = dataframe.merge(
-            informative_1h[["bb_lower", "macd", "macd_signal", "obv"]],
-            left_index=True, right_index=True, how='left', suffixes=("", "_1h")
+            informative_1h[["bb_lower_1h", "obv_1h"]],
+            left_index=True, right_index=True, how='left'
         )
-        
         daytrade_cond = (
             (dataframe['rsi_14_1h'] < 40) &
             (dataframe['close'] <= dataframe['bb_lower_1h']) &
@@ -226,43 +252,37 @@ class Vrach_Ultimate_PRO(IStrategy):
         )
         dataframe.loc[daytrade_cond, 'enter_long'] = True
         dataframe.loc[daytrade_cond, 'position_type'] = 'daytrade'
-        
-        # ✅ SWING TRADE — EMA200 slope up + ADX > 25 + MACD > 0 + RSI 40–60
-        # Koristimo informative_4h (4 sata) indikator
-        
-        informative_4h = self.informative_4h_indicators(metadata)
-        
+
+        # ✅ SWING TRADE
         dataframe = dataframe.merge(
-            informative_4h[["ema_200", "adx_14", "macd", "rsi_14"]],
-            left_index=True, right_index=True, how='left', suffixes=("", "_4h")
+            informative_4h[["ema_200_4h", "adx_14_4h", "macd_4h", "rsi_14_4h"]],
+            left_index=True, right_index=True, how='left'
         )
-        
         swing_cond = (
             (dataframe['ema_200_4h'] > dataframe['ema_200_4h'].shift(1)) &
-            (dataframe['adx_14_4h'] > 25) & (dataframe['macd_4h'] > 0) &
+            (dataframe['adx_14_4h'] > 25) &
+            (dataframe['macd_4h'] > 0) &
             (dataframe['rsi_14_4h'] > 40) & (dataframe['rsi_14_4h'] < 60) &
             (dataframe['volume'] > 0)
         )
         dataframe.loc[swing_cond, 'enter_long'] = True
         dataframe.loc[swing_cond, 'position_type'] = 'swing'
-        
-        # ✅ LONG TERM — EMA200 uptrend + RSI breakout + MACD > 0 + Price above BB middle
-        # Koristimo informative_1d (1 dan) indikator
-        
-        informative_1d = self.informative_1d_indicators(metadata)
+
+        # ✅ LONG TERM
         dataframe = dataframe.merge(
-            informative_1d[["ema_200", "rsi", "macd", "bb_middle"]],
-            left_index=True, right_index=True, how='left', suffixes=("", "_1d")
+            informative_1d[["ema_200_1d", "rsi_14_1d", "macd_1d", "macd_signal_1d", "bb_middle_1d"]],
+            left_index=True, right_index=True, how='left'
         )
         long_cond = (
             (dataframe['ema_200_1d'] > dataframe['ema_200_1d'].shift(1)) &
-            (dataframe['rsi__14_1d'] > 50) &
+            (dataframe['rsi_14_1d'] > 50) &
             (dataframe['macd_1d'] > dataframe['macd_signal_1d']) &
             (dataframe['close'] > dataframe['bb_middle_1d']) &
             (dataframe['volume'] > 0)
         )
         dataframe.loc[long_cond, 'enter_long'] = True
         dataframe.loc[long_cond, 'position_type'] = 'long'
+
         return dataframe
 
 
@@ -286,6 +306,8 @@ class Vrach_Ultimate_PRO(IStrategy):
             informative_1d[["rsi_14", "ema_200", "macd", "macd_signal", "obv"]],
             left_index=True, right_index=True, how='left', suffixes=("", "_1d")
         )
+
+        
         dataframe['exit_long'] = False
         # SCALP: Brzi profiti — izlazi kad RSI pređe 70 ili dođe do BB gornje
         scalp_exit = (
