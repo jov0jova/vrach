@@ -93,7 +93,7 @@ class Vrach_Ultimate_PRO(IStrategy):
 
         # === Informative columns to help with filtering ===
         #dataframe['macd_cross_5m'] = np.where(dataframe['macd'] > dataframe['macd_signal'], 1, -1)
-        dataframe['price_above_ema_200_5m'] = np.where(dataframe['close'] > dataframe['ema_200'], 1, 0)
+        #dataframe['price_above_ema_200_5m'] = np.where(dataframe['close'] > dataframe['ema_200'], 1, 0)
         return dataframe
 
     def informative_indicators(self, metadata: dict, info_timeframe: str) -> DataFrame:
@@ -134,7 +134,7 @@ class Vrach_Ultimate_PRO(IStrategy):
 
         # === Informative columns to help with filtering ===
         #dataframe['macd_cross'] = np.where(dataframe['macd'] > dataframe['macd_signal'], 1, -1)
-        dataframe['price_above_ema_200'] = np.where(dataframe['close'] > dataframe['ema_200'], 1, 0)
+        #dataframe['price_above_ema_200'] = np.where(dataframe['close'] > dataframe['ema_200'], 1, 0)
 
         return dataframe
 
