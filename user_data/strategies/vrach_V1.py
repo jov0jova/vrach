@@ -17,12 +17,13 @@ from freqtrade.optimize.space import Categorical, Real
 import numpy as np
 from datetime import datetime, timedelta
 from freqtrade.persistence import Trade
+from freqtrade.strategy import merge_informative_pair
 
 
 class Vrach_Ultimate_PRO(IStrategy):
     INTERFACE_VERSION = 3
     timeframe = '5m'
-    info_timeframes = ["15m","30m","1h","4h","8h","12h","1d","1w"]
+    inf_timeframes = ['15m','30m','1h', '4h','8h','12h', '1d','1w']
     minimal_roi = {
         "480": 0.02,
         "240": 0.014,
@@ -61,269 +62,70 @@ class Vrach_Ultimate_PRO(IStrategy):
         }
 
     def informative_pairs(self):
-        return []
+        pairs = [(pair, tf) for pair in self.dp.current_whitelist() for tf in self.inf_timeframes]
+        return pairs
 
     def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        # Glavni timeframe indikatori (5m)
+        dataframe['ema_10'] = ta.EMA(dataframe, timeperiod=10)
+        dataframe['ema_20'] = ta.EMA(dataframe, timeperiod=20)
+        dataframe['ema_50'] = ta.EMA(dataframe, timeperiod=50)
+        dataframe['ema_200'] = ta.EMA(dataframe, timeperiod=200)
+        dataframe['rsi_14'] = ta.RSI(dataframe, timeperiod=14)
+        dataframe['rsi_6'] = ta.RSI(dataframe, timeperiod=6)
+        dataframe['mfi'] = ta.MFI(dataframe)
+        dataframe['adx_14'] = ta.ADX(dataframe)
+        dataframe['atr_14'] = ta.ATR(dataframe)
 
-        # === RSI Indicators ===
-        dataframe['rsi_14'] = ta.RSI(dataframe['close'], timeperiod=14)
-        dataframe['rsi_6'] = ta.RSI(dataframe['close'], timeperiod=6)
-
-        # === EMA Indicators ===
-        dataframe['ema_20'] = ta.EMA(dataframe['close'], timeperiod=20)
-        dataframe['ema_50'] = ta.EMA(dataframe['close'], timeperiod=50)
-        dataframe['ema_200'] = ta.EMA(dataframe['close'], timeperiod=200)
-
-        # === MFI ===
-        dataframe['mfi'] = ta.MFI(dataframe['high'], dataframe['low'], dataframe['close'], dataframe['volume'], timeperiod=14)
-
-        # === MACD ===
         macd = ta.MACD(dataframe)
-        dataframe['macd'] = macd['macd']  # Ili macd['macd'] ako vraća DataFrame/Series sa tim imenima
-        dataframe['macd_signal'] = macd['macdsignal']# Ili macd['macdsignal']
-        dataframe['macd_histogram'] = macd['macdhist'] # Ili macd['macd_histogram']
+        dataframe['macd'] = macd['macd']
+        dataframe['macd_signal'] = macd['macdsignal']
+        dataframe['macd_histogram'] = macd['macdhist']
 
-        # === Bollinger Bands ===
-        dataframe['bb_upper'] = ta.BBANDS(dataframe, nbdevup=2.0, nbdevdn=2.0)['upperband']
-        dataframe['bb_middle'] = ta.BBANDS(dataframe, nbdevup=2.0, nbdevdn=2.0)['middleband']
-        dataframe['bb_lower'] = ta.BBANDS(dataframe, nbdevup=2.0, nbdevdn=2.0)['lowerband']
-        
-        # === ATR ===
-        dataframe['atr_14'] = ta.ATR(dataframe['high'], dataframe['low'], dataframe['close'], timeperiod=14)
+        bb = ta.BBANDS(dataframe, timeperiod=20)
+        dataframe['bb_upper'] = bb['upperband']
+        dataframe['bb_middle'] = bb['middleband']
+        dataframe['bb_lower'] = bb['lowerband']
 
-        # === ADX ===
-        dataframe['adx_14'] = ta.ADX(dataframe,timeperiod=14)
+        # OBV (posebno jer nije deo ta lib)
+        dataframe['obv'] = dataframe['volume'].combine_first(dataframe['volume'].shift()).fillna(0).cumsum()
 
-        # === OBV ===
-        dataframe['obv'] = ta.OBV(dataframe)
-        # === Informative columns to help with filtering ===
-        #dataframe['macd_cross_5m'] = np.where(dataframe['macd'] > dataframe['macd_signal'], 1, -1)
-        #dataframe['price_above_ema_200_5m'] = np.where(dataframe['close'] > dataframe['ema_200'], 1, 0)
-        return dataframe
+        # Informativni timeframe-ovi
+        for tf in self.inf_timeframes:
+            informative = self.dp.get_pair_dataframe(pair=metadata['pair'], timeframe=tf)
 
-    def informative_indicators(self, metadata: dict, info_timeframe: str) -> DataFrame:
+            informative[f'ema_20_{tf}'] = ta.EMA(informative, timeperiod=20)
+            informative[f'ema_50_{tf}'] = ta.EMA(informative, timeperiod=50)
+            informative[f'ema_200_{tf}'] = ta.EMA(informative, timeperiod=200)
+            informative[f'rsi_14_{tf}'] = ta.RSI(informative, timeperiod=14)
+            informative[f'rsi_6_{tf}'] = ta.RSI(informative, timeperiod=6)
+            informative[f'mfi_{tf}'] = ta.MFI(informative)
+            informative[f'adx_14_{tf}'] = ta.ADX(informative)
+            informative[f'atr_14_{tf}'] = ta.ATR(informative)
 
-        pair = metadata['pair']
-        ohlcv = self.dp.get_pair_dataframe(pair=pair, timeframe=info_timeframe)
+            macd_inf = ta.MACD(informative)
+            informative[f'macd_{tf}'] = macd_inf['macd']
+            informative[f'macd_signal_{tf}'] = macd_inf['macdsignal']
+            informative[f'macd_histogram_{tf}'] = macd_inf['macdhist']
 
-        if ohlcv is None or len(ohlcv) == 0:
-            return DataFrame()
+            bb_inf = ta.BBANDS(informative, timeperiod=20)
+            informative[f'bb_upper_{tf}'] = bb_inf['upperband']
+            informative[f'bb_middle_{tf}'] = bb_inf['middleband']
+            informative[f'bb_lower_{tf}'] = bb_inf['lowerband']
 
-        dataframe = ohlcv.copy()
+            informative[f'obv_{tf}'] = informative['volume'].combine_first(informative['volume'].shift()).fillna(0).cumsum()
 
-        # === RSI Indicators ===
-        dataframe['rsi_14'] = ta.RSI(dataframe['close'], timeperiod=14)
-        dataframe['rsi_6'] = ta.RSI(dataframe['close'], timeperiod=6)
-
-        # === EMA Indicators ===
-        dataframe['ema_20'] = ta.EMA(dataframe['close'], timeperiod=20)
-        dataframe['ema_50'] = ta.EMA(dataframe['close'], timeperiod=50)
-        dataframe['ema_200'] = ta.EMA(dataframe['close'], timeperiod=200)
-
-        # === MFI ===
-        dataframe['mfi'] = ta.MFI(dataframe['high'], dataframe['low'], dataframe['close'], dataframe['volume'], timeperiod=14)
-
-        # === MACD ===
-        macd = ta.MACD(dataframe)
-        dataframe['macd'] = macd['macd']  # Ili macd['macd'] ako vraća DataFrame/Series sa tim imenima
-        dataframe['macd_signal'] = macd['macdsignal']# Ili macd['macdsignal']
-        dataframe['macd_histogram'] = macd['macdhist'] # Ili macd['macd_histogram']
-
-        # === Bollinger Bands ===
-        dataframe['bb_upper'] = ta.BBANDS(dataframe, nbdevup=2.0, nbdevdn=2.0)['upperband']
-        dataframe['bb_middle'] = ta.BBANDS(dataframe, nbdevup=2.0, nbdevdn=2.0)['middleband']
-        dataframe['bb_lower'] = ta.BBANDS(dataframe, nbdevup=2.0, nbdevdn=2.0)['lowerband']
-        
-        # === ATR ===
-        dataframe['atr_14'] = ta.ATR(dataframe['high'], dataframe['low'], dataframe['close'], timeperiod=14)
-
-        # === ADX ===
-        dataframe['adx_14'] = ta.ADX(dataframe,timeperiod=14)
-
-        # === OBV ===
-        dataframe['obv'] = ta.OBV(dataframe)
-
-        # === Informative columns to help with filtering ===
-        #dataframe['macd_cross'] = np.where(dataframe['macd'] > dataframe['macd_signal'], 1, -1)
-        #dataframe['price_above_ema_200'] = np.where(dataframe['close'] > dataframe['ema_200'], 1, 0)
+            dataframe = merge_informative_pair(dataframe, informative, self.timeframe, tf, ffill=True)
 
         return dataframe
-
-    def informative_15m_indicators(self, metadata: dict) -> DataFrame:
-        dataframe_15m = self.informative_indicators(metadata, "15m")
-        dataframe_15m = dataframe_15m.rename(columns={
-            "ema_50": "ema_50_15m",
-            "ema_200": "ema_200_15m",
-            "rsi_14": "rsi_14_15m",
-            "macd": "macd_15m",
-            "macd_signal": "macd_signal_15m",
-            "bb_lower": "bb_lower_15m",
-            "obv": "obv_15m",
-            "bb_upper": "bb_upper_15m",
-            "adx_14": "adx_14_15m",
-            "atr_14": "atr_14_15m",
-            "rsi_6": "rsi_6_15m",
-            "ema_20": "ema_20_15m",
-            "mfi": "mfi_15m",
-            "macd_histogram": "macd_histogram_15m",
-            "bb_middle": "bb_middle_15m"
-        })
-        return dataframe_15m
-
-    def informative_30m_indicators(self, metadata: dict) -> DataFrame:
-        dataframe_30m = self.informative_indicators(metadata, "30m")
-        dataframe_30m = dataframe_30m.rename(columns={
-            "ema_50": "ema_50_30m",
-            "ema_200": "ema_200_30m",
-            "rsi_14": "rsi_14_30m",
-            "macd": "macd_30m",
-            "macd_signal": "macd_signal_30m",
-            "bb_lower": "bb_lower_30m",
-            "obv": "obv_30m",
-            "bb_upper": "bb_upper_30m",
-            "adx_14": "adx_14_30m",
-            "atr_14": "atr_14_30m",
-            "rsi_6": "rsi_6_30m",
-            "ema_20": "ema_20_30m",
-            "mfi": "mfi_30m",
-            "macd_histogram": "macd_histogram_30m",
-            "bb_middle": "bb_middle_30m"
-        })
-        return dataframe_30m
-
-    def informative_1h_indicators(self, metadata: dict) -> DataFrame:
-        dataframe_1h = self.informative_indicators(metadata, "1h")
-        dataframe_1h = dataframe_1h.rename(columns={
-            "ema_50": "ema_50_1h",
-            "ema_200": "ema_200_1h",
-            "rsi_14": "rsi_14_1h",
-            "macd": "macd_1h",
-            "macd_signal": "macd_signal_1h",
-            "bb_lower": "bb_lower_1h",
-            "obv": "obv_1h",
-            "bb_upper": "bb_upper_1h",
-            "adx_14": "adx_14_1h",
-            "atr_14": "atr_14_1h",
-            "rsi_6": "rsi_6_1h",
-            "ema_20": "ema_20_1h",
-            "mfi": "mfi_1h",
-            "macd_histogram": "macd_histogram_1h",
-            "bb_middle": "bb_middle_1h"
-        })
-        return dataframe_1h
-
-    def informative_4h_indicators(self, metadata: dict) -> DataFrame:
-        dataframe_4h = self.informative_indicators(metadata, "4h")
-        dataframe_4h = dataframe_4h.rename(columns={
-            "ema_50": "ema_50_4h",
-            "ema_200": "ema_200_4h",
-            "rsi_14": "rsi_14_4h",
-            "macd": "macd_4h",
-            "macd_signal": "macd_signal_4h",
-            "bb_lower": "bb_lower_4h",
-            "obv": "obv_4h",
-            "bb_upper": "bb_upper_4h",
-            "adx_14": "adx_14_4h",
-            "atr_14": "atr_14_4h",
-            "rsi_6": "rsi_6_4h",
-            "ema_20": "ema_20_4h",
-            "mfi": "mfi_4h",
-            "macd_histogram": "macd_histogram_4h",
-            "bb_middle": "bb_middle_4h"
-        })
-        return dataframe_4h
-
-    def informative_8h_indicators(self, metadata: dict) -> DataFrame:
-        dataframe_8h = self.informative_indicators(metadata, "8h")
-        dataframe_8h = dataframe_8h.rename(columns={
-            "ema_50": "ema_50_8h",
-            "ema_200": "ema_200_8h",
-            "rsi_14": "rsi_14_8h",
-            "macd": "macd_8h",
-            "macd_signal": "macd_signal_8h",
-            "bb_lower": "bb_lower_8h",
-            "obv": "obv_8h",
-            "bb_upper": "bb_upper_8h",
-            "adx_14": "adx_14_8h",
-            "atr_14": "atr_14_8h",
-            "rsi_6": "rsi_6_8h",
-            "ema_20": "ema_20_8h",
-            "mfi": "mfi_8h",
-            "macd_histogram": "macd_histogram_8h",
-            "bb_middle": "bb_middle_8h"
-        })
-        return dataframe_8h
-
-    def informative_12h_indicators(self, metadata: dict) -> DataFrame:
-        dataframe_12h = self.informative_indicators(metadata, "12h")
-        dataframe_12h = dataframe_12h.rename(columns={
-            "ema_50": "ema_50_12h",
-            "ema_200": "ema_200_12h",
-            "rsi_14": "rsi_14_12h",
-            "macd": "macd_12h",
-            "macd_signal": "macd_signal_12h",
-            "bb_lower": "bb_lower_12h",
-            "obv": "obv_12h",
-            "bb_upper": "bb_upper_12h",
-            "adx_14": "adx_14_12h",
-            "atr_14": "atr_14_12h",
-            "rsi_6": "rsi_6_12h",
-            "ema_20": "ema_20_12h",
-            "mfi": "mfi_12h",
-            "macd_histogram": "macd_histogram_12h",
-            "bb_middle": "bb_middle_12h"
-        })
-        return dataframe_12h
-
-    def informative_1d_indicators(self, metadata: dict) -> DataFrame:
-        dataframe_1d = self.informative_indicators(metadata, "1d")
-        dataframe_1d = dataframe_1d.rename(columns={
-            "ema_50": "ema_50_1d",
-            "ema_200": "ema_200_1d",
-            "rsi_14": "rsi_14_1d",
-            "macd": "macd_1d",
-            "macd_signal": "macd_signal_1d",
-            "bb_lower": "bb_lower_1d",
-            "obv": "obv_1d",
-            "bb_upper": "bb_upper_1d",
-            "adx_14": "adx_14_1d",
-            "atr_14": "atr_14_1d",
-            "rsi_6": "rsi_6_1d",
-            "ema_20": "ema_20_1d",
-            "mfi": "mfi_1d",
-            "macd_histogram": "macd_histogram_1d",
-            "bb_middle": "bb_middle_1d"
-        })
-        return dataframe_1d
-
-    def informative_1w_indicators(self, metadata: dict) -> DataFrame:
-        dataframe_1w = self.informative_indicators(metadata, "1w")
-        dataframe_1w = dataframe_1w.rename(columns={
-            "ema_50": "ema_50_1w",
-            "ema_200": "ema_200_1w",
-            "rsi_14": "rsi_14_1w",
-            "macd": "macd_1w",
-            "macd_signal": "macd_signal_1w",
-            "bb_lower": "bb_lower_1w",
-            "obv": "obv_1w",
-            "bb_upper": "bb_upper_1w",
-            "adx_14": "adx_14_1w",
-            "atr_14": "atr_14_1w",
-            "rsi_6": "rsi_6_1w",
-            "ema_20": "ema_20_1w",
-            "mfi": "mfi_1w",
-            "macd_histogram": "macd_histogram_1w",
-            "bb_middle": "bb_middle_1w"
-        })
-        return dataframe_1w
 
     def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         if dataframe.empty:
             return dataframe
 
-        informative_1h = self.informative_1h_indicators(metadata)
-        informative_4h = self.informative_4h_indicators(metadata)
-        informative_1d = self.informative_1d_indicators(metadata)
+        dataframe['enter_long'] = False
+        dataframe['enter_tag'] = ''
+        dataframe['position_type'] = ''
 
         # ✅ SCALP TRADE
         scalp_cond = (
@@ -332,54 +134,49 @@ class Vrach_Ultimate_PRO(IStrategy):
             (dataframe['atr_14'] > dataframe['atr_14'].rolling(20).mean()) &
             (dataframe['volume'] > 0)
         )
-        dataframe.loc[scalp_cond, ['enter_long', 'enter_tag']] = (True, 'scalp')
-        dataframe.loc[scalp_cond, 'position_type'] = 'scalp'  # Zadržite i ovu liniju
+        dataframe.loc[scalp_cond, ['enter_long', 'enter_tag', 'position_type']] = (True, 'scalp', 'scalp')
 
         # ✅ POSITION TRADE
         position_cond = (
-            (not informative_1h.empty and 'ema_50_1h' in informative_1h.columns and not informative_1h['ema_50_1h'].empty and informative_1h['ema_50_1h'].iloc[-1] < informative_1h['ema_200_1h'].iloc[-1]) &
-            (not informative_1h.empty and 'rsi_14_1h' in informative_1h.columns and not informative_1h['rsi_14_1h'].empty and informative_1h['rsi_14_1h'].iloc[-1] > 30) & (not informative_1h.empty and 'rsi_14_1h' in informative_1h.columns and not informative_1h['rsi_14_1h'].empty and informative_1h['rsi_14_1h'].iloc[-1] < 50) &
-            (not informative_1h.empty and 'macd_1h' in informative_1h.columns and not informative_1h['macd_1h'].empty and informative_1h['macd_1h'].iloc[-1] > informative_1h['macd_signal_1h'].iloc[-1]) &
+            (dataframe['ema_50_1h'] < dataframe['ema_200_1h']) &
+            (dataframe['rsi_14_1h'] > 30) & (dataframe['rsi_14_1h'] < 50) &
+            (dataframe['macd_1h'] > dataframe['macd_signal_1h']) &
             (dataframe['volume'] > 0)
         )
-        dataframe.loc[position_cond, ['enter_long', 'enter_tag']] = (True, 'position')
-        dataframe.loc[position_cond, 'position_type'] = 'position'  # Zadržite i ovu liniju
+        dataframe.loc[position_cond, ['enter_long', 'enter_tag', 'position_type']] = (True, 'position', 'position')
 
         # ✅ DAYTRADE
         daytrade_cond = (
-            (not informative_1h.empty and 'rsi_14_1h' in informative_1h.columns and not informative_1h['rsi_14_1h'].empty and informative_1h['rsi_14_1h'].iloc[-1] < 40) &
-            (not informative_1h.empty and 'bb_lower_1h' in informative_1h.columns and not informative_1h['bb_lower_1h'].empty and dataframe['close'] <= informative_1h['bb_lower_1h'].iloc[-1]) &
-            (not informative_1h.empty and 'macd_1h' in informative_1h.columns and not informative_1h['macd_1h'].empty and informative_1h['macd_1h'].iloc[-1] > informative_1h['macd_signal_1h'].iloc[-1]) &
-            (not informative_1h.empty and 'obv_1h' in informative_1h.columns and not informative_1h['obv_1h'].empty and informative_1h['obv_1h'].iloc[-1] > informative_1h['obv_1h'].shift(1).iloc[-1]) &
+            (dataframe['rsi_14_1h'] < 40) &
+            (dataframe['close'] <= dataframe['bb_lower_1h']) &
+            (dataframe['macd_1h'] > dataframe['macd_signal_1h']) &
+            (dataframe['obv_1h'] > dataframe['obv_1h'].shift(1)) &
             (dataframe['volume'] > 0)
         )
-        dataframe.loc[daytrade_cond, ['enter_long', 'enter_tag']] = (True, 'daytrade')
-        dataframe.loc[daytrade_cond, 'position_type'] = 'daytrade'  # Zadržite i ovu liniju
+        dataframe.loc[daytrade_cond, ['enter_long', 'enter_tag', 'position_type']] = (True, 'daytrade', 'daytrade')
 
         # ✅ SWING TRADE
         swing_cond = (
-            (not informative_4h.empty and 'ema_200_4h' in informative_4h.columns and not informative_4h['ema_200_4h'].empty and informative_4h['ema_200_4h'].iloc[-1] > informative_4h['ema_200_4h'].shift(1).iloc[-1]) &
-            (not informative_4h.empty and 'adx_14_4h' in informative_4h.columns and not informative_4h['adx_14_4h'].empty and informative_4h['adx_14_4h'].iloc[-1] > 25) &
-            (not informative_4h.empty and 'macd_4h' in informative_4h.columns and not informative_4h['macd_4h'].empty and informative_4h['macd_4h'].iloc[-1] > 0) &
-            (not informative_4h.empty and 'rsi_14_4h' in informative_4h.columns and not informative_4h['rsi_14_4h'].empty and informative_4h['rsi_14_4h'].iloc[-1] > 40) & (not informative_4h.empty and 'rsi_14_4h' in informative_4h.columns and not informative_4h['rsi_14_4h'].empty and informative_4h['rsi_14_4h'].iloc[-1] < 60) &
+            (dataframe['ema_200_4h'] > dataframe['ema_200_4h'].shift(1)) &
+            (dataframe['adx_14_4h'] > 25) &
+            (dataframe['macd_4h'] > 0) &
+            (dataframe['rsi_14_4h'] > 40) & (dataframe['rsi_14_4h'] < 60) &
             (dataframe['volume'] > 0)
         )
-        dataframe.loc[swing_cond, ['enter_long', 'enter_tag']] = (True, 'swing')
-        dataframe.loc[swing_cond, 'position_type'] = 'swing'  # Zadržite i ovu liniju
+        dataframe.loc[swing_cond, ['enter_long', 'enter_tag', 'position_type']] = (True, 'swing', 'swing')
 
         # ✅ LONG TERM
         long_cond = (
-            (not informative_1d.empty and 'ema_200_1d' in informative_1d.columns and not informative_1d['ema_200_1d'].empty and informative_1d['ema_200_1d'].iloc[-1] > informative_1d['ema_200_1d'].shift(1).iloc[-1]) &
-            (not informative_1d.empty and 'rsi_14_1d' in informative_1d.columns and not informative_1d['rsi_14_1d'].empty and informative_1d['rsi_14_1d'].iloc[-1] > 50) &
-            (not informative_1d.empty and 'macd_1d' in informative_1d.columns and not informative_1d['macd_1d'].empty and informative_1d['macd_1d'].iloc[-1] > informative_1d['macd_signal_1d'].iloc[-1]) &
-            (not informative_1d.empty and 'bb_middle_1d' in informative_1d.columns and not informative_1d['bb_middle_1d'].empty and dataframe['close'] > informative_1d['bb_middle_1d'].iloc[-1]) &
+            (dataframe['ema_200_1d'] > dataframe['ema_200_1d'].shift(1)) &
+            (dataframe['rsi_14_1d'] > 50) &
+            (dataframe['macd_1d'] > dataframe['macd_signal_1d']) &
+            (dataframe['close'] > dataframe['bb_middle_1d']) &
             (dataframe['volume'] > 0)
         )
-        dataframe.loc[long_cond, ['enter_long', 'enter_tag']] = (True, 'long')
-        dataframe.loc[long_cond, 'position_type'] = 'long'  # Zadržite i ovu liniju
+        dataframe.loc[long_cond, ['enter_long', 'enter_tag', 'position_type']] = (True, 'long', 'long')
 
         return dataframe
-
+'''
     def populate_exit_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         if dataframe.empty:
             return dataframe
@@ -448,6 +245,7 @@ class Vrach_Ultimate_PRO(IStrategy):
         dataframe.loc[long_exit, ['exit_long', 'exit_tag']] = (True, 'long_exit')
 
         return dataframe
+'''
 '''
     def custom_exit(self, pair: str, trade: 'Trade', current_time: datetime, current_rate: float,
                     current_profit: float, metadata: dict, **kwargs):
