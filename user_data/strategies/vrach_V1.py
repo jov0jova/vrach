@@ -91,6 +91,11 @@ class Vrach_Ultimate_PRO(IStrategy):
         # === ATR ===
         dataframe['atr_14_5m'] = ta.ATR(dataframe['high'], dataframe['low'], dataframe['close'], timeperiod=14)
 
+        # === ADX ===
+        dataframe['adx_14_5m'] = dataframe.ta.adx(length=14)['ADX_14']
+
+        # === OBV ===
+        dataframe['obv_5m'] = dataframe.ta.obv()
         # === Informative columns to help with filtering ===
         #dataframe['macd_cross_5m'] = np.where(dataframe['macd'] > dataframe['macd_signal'], 1, -1)
         #dataframe['price_above_ema_200_5m'] = np.where(dataframe['close'] > dataframe['ema_200'], 1, 0)
@@ -131,6 +136,12 @@ class Vrach_Ultimate_PRO(IStrategy):
         
         # === ATR ===
         dataframe['atr_14'] = ta.ATR(dataframe['high'], dataframe['low'], dataframe['close'], timeperiod=14)
+
+        # === ADX ===
+        dataframe['adx_14'] = dataframe.ta.adx(length=14)['ADX_14']
+
+        # === OBV ===
+        dataframe['obv'] = dataframe.ta.obv()
 
         # === Informative columns to help with filtering ===
         #dataframe['macd_cross'] = np.where(dataframe['macd'] > dataframe['macd_signal'], 1, -1)
@@ -183,7 +194,7 @@ class Vrach_Ultimate_PRO(IStrategy):
         informative_1h = self.informative_1h_indicators(metadata)
         
         dataframe = dataframe.merge(
-            informative_1h[["ema_50", "ema_200", "rsi", "macd", "macd_signal"]],
+            informative_1h[["ema_50", "ema_200", "rsi_14", "macd", "macd_signal"]],
             left_index=True, right_index=True, how='left', suffixes=("", "_1h")
         )
         
@@ -202,7 +213,7 @@ class Vrach_Ultimate_PRO(IStrategy):
         informative_1h = self.informative_1h_indicators(metadata)
         
         dataframe = dataframe.merge(
-            informative_1h[["bb_lower", "macd", "macd_signal", "obv_1h"]],
+            informative_1h[["bb_lower", "macd", "macd_signal", "obv"]],
             left_index=True, right_index=True, how='left', suffixes=("", "_1h")
         )
         
@@ -264,15 +275,15 @@ class Vrach_Ultimate_PRO(IStrategy):
         informative_1d = self.informative_1d_indicators(metadata)
 
         dataframe = dataframe.merge(
-            informative_1h[["rsi_14_1h", "bb_upper_1h", "macd", "macd_signal", "obv_1h"]],
+            informative_1h[["rsi_14", "bb_upper", "macd", "macd_signal", "obv"]],
             left_index=True, right_index=True, how='left', suffixes=("", "_1h")
         )
         dataframe = dataframe.merge(
-            informative_4h[["rsi_14_4h", "adx_14_4h", "macd", "macd_signal"]],
+            informative_4h[["rsi_14", "adx_14", "macd", "macd_signal"]],
             left_index=True, right_index=True, how='left', suffixes=("", "_4h")
         )
         dataframe = dataframe.merge(
-            informative_1d[["rsi_14_1d", "ema_200_1d", "macd", "macd_signal", "obv_1d"]],
+            informative_1d[["rsi_14", "ema_200", "macd", "macd_signal", "obv"]],
             left_index=True, right_index=True, how='left', suffixes=("", "_1d")
         )
         dataframe['exit_long'] = False
@@ -421,15 +432,15 @@ class Vrach_Ultimate_PRO(IStrategy):
         
 
         dataframe = dataframe.merge(
-            informative_1h[["rsi_14_1h", "macd_histogram", "ema_50", "ema_200"]],
+            informative_1h[["rsi_14", "macd_histogram", "ema_50", "ema_200"]],
             left_index=True, right_index=True, how='left', suffixes=("", "_1h")
         )
         dataframe = dataframe.merge(
-            informative_4h[["rsi_14_4h", "macd_histogram", "ema_50", "ema_200"]],
+            informative_4h[["rsi_14", "macd_histogram", "ema_50", "ema_200"]],
             left_index=True, right_index=True, how='left', suffixes=("", "_4h")
         )
         dataframe = dataframe.merge(
-            informative_1d[["rsi_14_1d", "macd_histogram", "ema_50", "ema_200"]],
+            informative_1d[["rsi_14", "macd_histogram", "ema_50", "ema_200"]],
             left_index=True, right_index=True, how='left', suffixes=("", "_1d")
         )
         last = dataframe.iloc[-1]  # Update last to include new indicators
