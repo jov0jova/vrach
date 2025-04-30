@@ -10,14 +10,14 @@ ________________________________________________________________________________
 '''
 #Code
 
-import numpy as np
-import talib.abstract as ta
-from pandas import DataFrame
-import freqtrade.vendor.qtpylib.indicators as qtpylib
 from freqtrade.strategy.interface import IStrategy
-from freqtrade.persistence import Trade
+from pandas import DataFrame
+import talib.abstract as ta
+from freqtrade.optimize.space import Categorical, Real
+import numpy as np
 from datetime import datetime, timedelta
-from typing import Optional
+from freqtrade.persistence import Trade
+
 
 class Vrach_Ultimate_PRO(IStrategy):
     INTERFACE_VERSION = 3
@@ -411,7 +411,7 @@ class Vrach_Ultimate_PRO(IStrategy):
             return "quick_scalp_exit"
         return None  # default: ne menjaj ništa
     
-    def adjust_trade_position_type(self, trade: 'Trade', dataframe: DataFrame):
+    def adjust_trade_position_type(self, trade: 'Trade', dataframe: DataFrame,**kwargs):
         
         last = dataframe.iloc[-1]
         current_type = trade.entry_tag
