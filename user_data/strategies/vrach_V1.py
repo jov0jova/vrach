@@ -1366,7 +1366,7 @@ class Vrach_Ultimate_PRO(IStrategy):
 
         return dataframe
 
-    def assign_trend_type(dataframe):
+    def assign_trend_type(self, dataframe: DataFrame) -> DataFrame:
         dataframe['trend_type'] = 'none'
 
         scalp_cond = (
@@ -1462,7 +1462,7 @@ class Vrach_Ultimate_PRO(IStrategy):
         per strategy type: scalping, swing, long, and trend-following.
         """
         dataframe = self.assign_trend_type(dataframe)
-        
+
         dataframe['exit_long'] = 0
         dataframe['exit_tag'] = None
 
