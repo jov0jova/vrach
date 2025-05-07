@@ -88,22 +88,13 @@ class Vrach_Ultimate_PRO(IStrategy):
         //                                                                                                                                      //
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         """
-        '''
-        
-        KAMA TREND DOWN MISSING
-        KAMA TREND UP MISSING
-
-        BB BREAKOUT MISSING
-        
-        
-        
-        '''
 
         # #BBANDS Bollinger Bands
-        # bb = ta.BBANDS(informative_1h, timeperiod=20)
-        # informative_1h['bb_upper'] = bb['upperband']
-        # informative_1h['bb_middle'] = bb['middleband']
-        # informative_1h['bb_lower'] = bb['lowerband']
+        bb = ta.BBANDS(informative_1h, timeperiod=20)
+        informative_1h['bb_upper'] = bb['upperband']
+        informative_1h['bb_middle'] = bb['middleband']
+        informative_1h['bb_lower'] = bb['lowerband']
+        informative_1h['bbands_breakout_down'] = informative_1h['close'] < informative_1h['bb_lower']
 
         # #DEMA Double Exponential Moving Average
         # informative_1h['dema_7'] = ta.DEMA(informative_1h, timeperiod=7)
@@ -138,6 +129,8 @@ class Vrach_Ultimate_PRO(IStrategy):
         informative_1h['kama_25'] = ta.KAMA(informative_1h, timeperiod=25)
         informative_1h['kama_99'] = ta.KAMA(informative_1h, timeperiod=99)
         informative_1h['kama_200'] = ta.KAMA(informative_1h, timeperiod=200)
+        informative_1h['kama_trend_up'] = informative_1h['kama_99'] > informative_1h['kama_99'].shift(1)
+        informative_1h['kama_trend_down'] = informative_1h['kama_99'] < informative_1h['kama_99'].shift(1)
 
         # #MA Moving average
 
@@ -302,6 +295,7 @@ class Vrach_Ultimate_PRO(IStrategy):
         informative_4h['bb_upper'] = bb['upperband']
         informative_4h['bb_middle'] = bb['middleband']
         informative_4h['bb_lower'] = bb['lowerband']
+        informative_4h['bbands_breakout_down'] = informative_4h['close'] < informative_4h['bb_lower']
 
         # #DEMA Double Exponential Moving Average
         # informative_4h['dema_7'] = ta.DEMA(informative_4h, timeperiod=7)
@@ -336,6 +330,8 @@ class Vrach_Ultimate_PRO(IStrategy):
         informative_4h['kama_25'] = ta.KAMA(informative_4h, timeperiod=25)
         informative_4h['kama_99'] = ta.KAMA(informative_4h, timeperiod=99)
         informative_4h['kama_200'] = ta.KAMA(informative_4h, timeperiod=200)
+        informative_4h['kama_trend_up'] = informative_4h['kama_99'] > informative_4h['kama_99'].shift(1)
+        informative_4h['kama_trend_down'] = informative_4h['kama_99'] < informative_4h['kama_99'].shift(1)
 
         # #MA Moving average
 
@@ -545,6 +541,7 @@ class Vrach_Ultimate_PRO(IStrategy):
         informative_1d['bb_upper'] = bb['upperband']
         informative_1d['bb_middle'] = bb['middleband']
         informative_1d['bb_lower'] = bb['lowerband']
+        informative_1d['bbands_breakout_down'] = informative_1d['close'] < informative_1d['bb_lower']
 
         # #DEMA Double Exponential Moving Average
         # informative_1d['dema_7'] = ta.DEMA(informative_1d, timeperiod=7)
@@ -579,6 +576,8 @@ class Vrach_Ultimate_PRO(IStrategy):
         informative_1d['kama_25'] = ta.KAMA(informative_1d, timeperiod=25)
         informative_1d['kama_99'] = ta.KAMA(informative_1d, timeperiod=99)
         informative_1d['kama_200'] = ta.KAMA(informative_1d, timeperiod=200)
+        informative_1d['kama_trend_up'] = informative_1d['kama_200'] > informative_1d['kama_200'].shift(1)
+        informative_1d['kama_trend_down'] = informative_1d['kama_200'] < informative_1d['kama_200'].shift(1)
 
         # #MA Moving average
 
@@ -788,6 +787,7 @@ class Vrach_Ultimate_PRO(IStrategy):
         informative_1w['bb_upper'] = bb['upperband']
         informative_1w['bb_middle'] = bb['middleband']
         informative_1w['bb_lower'] = bb['lowerband']
+        informative_1w['bbands_breakout_down'] = informative_1w['close'] < informative_1w['bb_lower']
 
         # #DEMA Double Exponential Moving Average
         # informative_1w['dema_7'] = ta.DEMA(informative_1w, timeperiod=7)
@@ -822,6 +822,9 @@ class Vrach_Ultimate_PRO(IStrategy):
         informative_1w['kama_25'] = ta.KAMA(informative_1w, timeperiod=25)
         informative_1w['kama_99'] = ta.KAMA(informative_1w, timeperiod=99)
         informative_1w['kama_200'] = ta.KAMA(informative_1w, timeperiod=200)
+        informative_1w['kama_trend_up'] = informative_1w['kama_200'] > informative_1w['kama_200'].shift(1)
+        informative_1w['kama_trend_down'] = informative_1w['kama_200'] < informative_1w['kama_200'].shift(1)
+
 
         # #MA Moving average
 
@@ -1050,6 +1053,7 @@ class Vrach_Ultimate_PRO(IStrategy):
         dataframe['bb_upper'] = bb['upperband']
         dataframe['bb_middle'] = bb['middleband']
         dataframe['bb_lower'] = bb['lowerband']
+        dataframe['bbands_breakout_down'] = dataframe['close'] < dataframe['bb_lower']
 
         
 
@@ -1086,6 +1090,8 @@ class Vrach_Ultimate_PRO(IStrategy):
         dataframe['kama_25'] = ta.KAMA(dataframe, timeperiod=25)
         dataframe['kama_99'] = ta.KAMA(dataframe, timeperiod=99)
         dataframe['kama_200'] = ta.KAMA(dataframe, timeperiod=200)
+        dataframe['kama_trend_up'] = dataframe['kama_25'] > dataframe['kama_25'].shift(1)
+        dataframe['kama_trend_down'] = dataframe['kama_25'] < dataframe['kama_25'].shift(1)
 
         # #MA Moving average
 
