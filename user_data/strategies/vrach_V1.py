@@ -1875,7 +1875,7 @@ class Vrach_Ultimate_PRO(IStrategy):
             (dataframe['macd_1h'] > dataframe['macd_signal_1h']) &
             (dataframe['adx_1h'] > dataframe['adx_rolling_quantile_25_1h']) &
             (dataframe['plus_di_1h'] > dataframe['minus_di_1h']) &
-            (dataframe['rsi_14_1h'] > dataframe['rsi_14_rolling_quantile_10_1h'])
+            (dataframe['rsi_13_1h'] > dataframe['rsi_13_rolling_quantile_10_1h'])
         ).astype('bool')
 
         return dataframe
