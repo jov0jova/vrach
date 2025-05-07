@@ -73,13 +73,10 @@ class Vrach_Ultimate_PRO(IStrategy):
     def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         
 
-        lookback_5m = 288
+        lookback_5m = 144 #288
         lookback_1h = 144
         lookback_4h = 72
         lookback_1d = 36
-        lookback_1w = 18 
-
-
 
         # '''
         # ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -298,20 +295,20 @@ class Vrach_Ultimate_PRO(IStrategy):
         dataframe['rsi_21'] = ta.RSI(dataframe,timeperiod=21)
         dataframe['rsi_34'] = ta.RSI(dataframe,timeperiod=34)
 
-        dataframe['rsi_3_rolling_quantile_10'] = dataframe['rsi_3'].shift(1).rolling(window=lookback_5m).quantile(0.10)
-        dataframe['rsi_3_rolling_quantile_90'] = dataframe['rsi_3'].shift(1).rolling(window=lookback_5m).quantile(0.90)
+        dataframe['rsi_3_rolling_quantile_10'] = dataframe['rsi_3'].shift(1).rolling(window=lookback_5m).quantile(0.15)
+        dataframe['rsi_3_rolling_quantile_90'] = dataframe['rsi_3'].shift(1).rolling(window=lookback_5m).quantile(0.85)
 
-        dataframe['rsi_8_rolling_quantile_10'] = dataframe['rsi_8'].shift(1).rolling(window=lookback_5m).quantile(0.10)
-        dataframe['rsi_8_rolling_quantile_90'] = dataframe['rsi_8'].shift(1).rolling(window=lookback_5m).quantile(0.90)
+        dataframe['rsi_8_rolling_quantile_10'] = dataframe['rsi_8'].shift(1).rolling(window=lookback_5m).quantile(0.15)
+        dataframe['rsi_8_rolling_quantile_90'] = dataframe['rsi_8'].shift(1).rolling(window=lookback_5m).quantile(0.85)
 
-        dataframe['rsi_13_rolling_quantile_10'] = dataframe['rsi_13'].shift(1).rolling(window=lookback_5m).quantile(0.10)
-        dataframe['rsi_13_rolling_quantile_90'] = dataframe['rsi_13'].shift(1).rolling(window=lookback_5m).quantile(0.90)
+        dataframe['rsi_13_rolling_quantile_10'] = dataframe['rsi_13'].shift(1).rolling(window=lookback_5m).quantile(0.15)
+        dataframe['rsi_13_rolling_quantile_90'] = dataframe['rsi_13'].shift(1).rolling(window=lookback_5m).quantile(0.85)
 
-        dataframe['rsi_21_rolling_quantile_10'] = dataframe['rsi_21'].shift(1).rolling(window=lookback_5m).quantile(0.10)
-        dataframe['rsi_21_rolling_quantile_90'] = dataframe['rsi_21'].shift(1).rolling(window=lookback_5m).quantile(0.90)
+        dataframe['rsi_21_rolling_quantile_10'] = dataframe['rsi_21'].shift(1).rolling(window=lookback_5m).quantile(0.15)
+        dataframe['rsi_21_rolling_quantile_90'] = dataframe['rsi_21'].shift(1).rolling(window=lookback_5m).quantile(0.85)
 
-        dataframe['rsi_34_rolling_quantile_10'] = dataframe['rsi_34'].shift(1).rolling(window=lookback_5m).quantile(0.10)
-        dataframe['rsi_34_rolling_quantile_90'] = dataframe['rsi_34'].shift(1).rolling(window=lookback_5m).quantile(0.90)
+        dataframe['rsi_34_rolling_quantile_10'] = dataframe['rsi_34'].shift(1).rolling(window=lookback_5m).quantile(0.15)
+        dataframe['rsi_34_rolling_quantile_90'] = dataframe['rsi_34'].shift(1).rolling(window=lookback_5m).quantile(0.85)
         # #STOCH Stochastic
         # slowk, slowd = ta.STOCH(dataframe)
         # dataframe['stoch_k'] = slowk
@@ -406,6 +403,10 @@ class Vrach_Ultimate_PRO(IStrategy):
         # #WCLPRICE Weighted Close Price
         # dataframe['wclprice'] = ta.WCLPRICE(dataframe)
 
+        # Close Rolling 
+        dataframe['close_rolling_quantile_90'] = dataframe['close'].shift(1).rolling(window=lookback_5m).quantile(0.90)
+        dataframe['close_rolling_quantile_10'] = dataframe['close'].shift(1).rolling(window=lookback_5m).quantile(0.20)
+
         # '''
         # //////////////////////////////////////////////////////////////////////////////////////////////////////////
         # //                                                                                                      //
@@ -438,7 +439,6 @@ class Vrach_Ultimate_PRO(IStrategy):
         informative_1h = self.dp.get_pair_dataframe(pair=metadata['pair'], timeframe='1h')
         informative_4h = self.dp.get_pair_dataframe(pair=metadata['pair'], timeframe='4h')
         informative_1d = self.dp.get_pair_dataframe(pair=metadata['pair'], timeframe='1d')
-        informative_1w = self.dp.get_pair_dataframe(pair=metadata['pair'], timeframe='1w')
 
         # '''
         # //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1511,363 +1511,9 @@ class Vrach_Ultimate_PRO(IStrategy):
         # #HT_TRENDMODE Hilbert Transform - Trend vs Cycle Mode
         # informative_1d['ht_trendmode'] = ta.HT_TRENDMODE(informative_1d)
 
-        # '''
-        # ////////////////////////////////////////////////////////////////////////////////////////////////////
-        # //                                                                                                //
-        # //       ____                      __                  _____  __              __ _                //
-        # //      / __ \ _   __ ___   _____ / /____ _ ____      / ___/ / /_ __  __ ____/ /(_)___   _____    //
-        # //     / / / /| | / // _ \ / ___// // __ `// __ \     \__ \ / __// / / // __  // // _ \ / ___/    //
-        # //    / /_/ / | |/ //  __// /   / // /_/ // /_/ /    ___/ // /_ / /_/ // /_/ // //  __/(__  )     //
-        # //    \____/  |___/ \___//_/   /_/ \__,_// .___/    /____/ \__/ \__,_/ \__,_//_/ \___//____/      //
-        # //                                      /_/                                                       //
-        # //                                                                                                //
-        # ////////////////////////////////////////////////////////////////////////////////////////////////////
-        # '''
-
-        # #BBANDS Bollinger Bands
-        informative_1w['bb_upper'] = ta.BBANDS(informative_1w, nbdevup=2.0, nbdevdn=2.0)['upperband']
-        informative_1w['bb_middle'] = ta.BBANDS(informative_1w, nbdevup=2.0, nbdevdn=2.0)['middleband']
-        informative_1w['bb_lower'] = ta.BBANDS(informative_1w, nbdevup=2.0, nbdevdn=2.0)['lowerband']
-        informative_1w['bbands_breakout_down'] = informative_1w['close'] < informative_1w['bb_lower']
-        informative_1w['bbands_breakout_up'] = informative_1w['close'] > informative_1w['bb_upper']
-
-        
-
-        # #DEMA Double Exponential Moving Average
-        # informative_1w['dema_7'] = ta.DEMA(informative_1w, timeperiod=7)
-        # informative_1w['dema_25'] = ta.DEMA(informative_1w, timeperiod=25)
-        # informative_1w['dema_99'] = ta.DEMA(informative_1w, timeperiod=99)
-        # informative_1w['dema_200'] = ta.DEMA(informative_1w, timeperiod=200)
-
-        # #EMA Exponential Moving Average
-        informative_1w['ema_7'] = ta.EMA(informative_1w, timeperiod=7)
-        informative_1w['ema_25'] = ta.EMA(informative_1w, timeperiod=25)
-        informative_1w['ema_50'] = ta.EMA(informative_1w, timeperiod=50)
-        informative_1w['ema_99'] = ta.EMA(informative_1w, timeperiod=99)
-        informative_1w['ema_200'] = ta.EMA(informative_1w, timeperiod=200)
-
-        # #FEMA Fibonacci Exponenetial Moving Average
-        # informative_1w['fema_3'] = ta.EMA(informative_1w, timeperiod=3)
-        # informative_1w['fema_5'] = ta.EMA(informative_1w, timeperiod=5)
-        # informative_1w['fema_8'] = ta.EMA(informative_1w, timeperiod=8)
-        # informative_1w['fema_13'] = ta.EMA(informative_1w, timeperiod=13)
-        # informative_1w['fema_21'] = ta.EMA(informative_1w, timeperiod=21)
-        # informative_1w['fema_34'] = ta.EMA(informative_1w, timeperiod=34)
-        # informative_1w['fema_55'] = ta.EMA(informative_1w, timeperiod=55)
-        # informative_1w['fema_89'] = ta.EMA(informative_1w, timeperiod=89)
-        # informative_1w['fema_144'] = ta.EMA(informative_1w, timeperiod=144)
-        # informative_1w['fema_233'] = ta.EMA(informative_1w, timeperiod=233)
-
-        # #HT_TRENDLINE Hilbert Transform - Instantaneous Trendline
-        # informative_1w['ht_trendline'] = ta.HT_TRENDLINE(informative_1w)
-
-        # #KAMA Kaufman Adaptive Moving Average
-        informative_1w['kama_7'] = ta.KAMA(informative_1w, timeperiod=7)
-        informative_1w['kama_25'] = ta.KAMA(informative_1w, timeperiod=25)
-        informative_1w['kama_99'] = ta.KAMA(informative_1w, timeperiod=99)
-        informative_1w['kama_200'] = ta.KAMA(informative_1w, timeperiod=200)
-        informative_1w['kama_trend_up'] = informative_1w['kama_25'] > informative_1w['kama_25'].shift(1)
-        informative_1w['kama_trend_down'] = informative_1w['kama_25'] < informative_1w['kama_25'].shift(1)
-
-        # #MA Moving average
-
-
-        # #MAMA MESA Adaptive Moving Average
-        # informative_1w['mama'], informative_1w['fama'] = ta.MAMA(informative_1w)
-
-        # #MAVP Moving average with variable period
-
-
-        # #MIDPOINT MidPoint over period
-        # informative_1w['midpoint_7'] = ta.MIDPOINT(informative_1w, timeperiod=7)
-        # informative_1w['midpoint_25'] = ta.MIDPOINT(informative_1w, timeperiod=25)
-        # informative_1w['midpoint_99'] = ta.MIDPOINT(informative_1w, timeperiod=99)
-        # informative_1w['midpoint_200'] = ta.MIDPOINT(informative_1w, timeperiod=200)
-
-        # #MIDPRICE Midpoint Price over period
-        # informative_1w['midprice_7'] = ta.MIDPRICE(informative_1w, timeperiod=7)
-        # informative_1w['midprice_25'] = ta.MIDPRICE(informative_1w, timeperiod=25)
-        # informative_1w['midprice_99'] = ta.MIDPRICE(informative_1w, timeperiod=99)
-        # informative_1w['midprice_200'] = ta.MIDPRICE(informative_1w, timeperiod=200)
-        
-        # #SAR Parabolic SAR
-        informative_1w['sar'] = ta.SAR(informative_1w)
-
-        # #SAREXT Parabolic SAR - Extended
-        # informative_1w['sarext'] = ta.SAREXT(informative_1w)
-
-        # #SMA Simple Moving Average
-        # informative_1w['sma_7'] = ta.SMA(informative_1w, timeperiod=7)
-        # informative_1w['sma_25'] = ta.SMA(informative_1w, timeperiod=25)
-        # informative_1w['sma_99'] = ta.SMA(informative_1w, timeperiod=99)
-        # informative_1w['sma_200'] = ta.SMA(informative_1w, timeperiod=200)
-
-        # #T3 Triple Exponential Moving Average (T3)
-        # informative_1w['t3_7'] = ta.T3(informative_1w, timeperiod=7)
-        # informative_1w['t3_25'] = ta.T3(informative_1w, timeperiod=25)
-        # informative_1w['t3_99'] = ta.T3(informative_1w, timeperiod=99)
-        # informative_1w['t3_200'] = ta.T3(informative_1w, timeperiod=200)
-
-        # #TEMA Triple Exponential Moving Average
-        # informative_1w['tema_7'] = ta.TEMA(informative_1w, timeperiod=20)
-        # informative_1w['tema_25'] = ta.TEMA(informative_1w, timeperiod=25)
-        # informative_1w['tema_99'] = ta.TEMA(informative_1w, timeperiod=99)
-        # informative_1w['tema_200'] = ta.TEMA(informative_1w, timeperiod=200)
-
-        # #TRIMA Triangular Moving Average
-        # informative_1w['trima_7'] = ta.TRIMA(informative_1w, timeperiod=7)
-        # informative_1w['trima_25'] = ta.TRIMA(informative_1w, timeperiod=25)
-        # informative_1w['trima_99'] = ta.TRIMA(informative_1w, timeperiod=99)
-        # informative_1w['trima_200'] = ta.TRIMA(informative_1w, timeperiod=200)
-
-        # #WMA Weighted Moving Average
-        # informative_1w['wma_7'] = ta.WMA(informative_1w, timeperiod=7)
-        # informative_1w['wma_25'] = ta.WMA(informative_1w, timeperiod=25)
-        # informative_1w['wma_99'] = ta.WMA(informative_1w, timeperiod=99)
-        # informative_1w['wma_200'] = ta.WMA(informative_1w, timeperiod=200)
-
-        # '''
-        # ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        # //                                                                                                                                        //
-        # //        __  ___                                __                         ____            __ _               __                         //
-        # //       /  |/  /____   ____ ___   ___   ____   / /_ __  __ ____ ___       /  _/____   ____/ /(_)_____ ____ _ / /_ ____   _____ _____     //
-        # //      / /|_/ // __ \ / __ `__ \ / _ \ / __ \ / __// / / // __ `__ \      / / / __ \ / __  // // ___// __ `// __// __ \ / ___// ___/     //
-        # //     / /  / // /_/ // / / / / //  __// / / // /_ / /_/ // / / / / /    _/ / / / / // /_/ // // /__ / /_/ // /_ / /_/ // /   (__  )      //
-        # //    /_/  /_/ \____//_/ /_/ /_/ \___//_/ /_/ \__/ \__,_//_/ /_/ /_/    /___//_/ /_/ \__,_//_/ \___/ \__,_/ \__/ \____//_/   /____/       //
-        # //                                                                                                                                        //
-        # ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        # '''
-
-        # #ADX Average Directional Movement Index
-        informative_1w['adx'] = ta.ADX(informative_1w)
-        informative_1w['adx_rolling_quantile_25'] = informative_1w['adx'].shift(1).rolling(window=lookback_1w).quantile(0.25)
-        informative_1w['adx_rolling_quantile_75'] = informative_1w['adx'].shift(1).rolling(window=lookback_1w).quantile(0.75)
-
-        # #ADXR Average Directional Movement Index Rating
-        # informative_1w['adxr'] = ta.ADXR(informative_1w)
-
-        # #APO Absolute Price Oscillator
-        # informative_1w['apo'] = ta.APO(informative_1w)
-
-        # #AROON Aroon
-        # aroon_down, aroon_up = ta.AROON(informative_1w)
-        # informative_1w['aroon_down'] = aroon_down
-        # informative_1w['aroon_up'] = aroon_up
-
-        # #AROONOSC Aroon Oscillator
-        # informative_1w['aroonosc'] = ta.AROONOSC(informative_1w)
-
-        # #BOP Balance Of Power
-        # informative_1w['bop'] = ta.BOP(informative_1w)
-
-        # #CCI Commodity Channel Index
-        informative_1w['cci'] = ta.CCI(informative_1w)
-        informative_1w['cci_rolling_quantile_10'] = informative_1w['cci'].shift(1).rolling(window=lookback_1w).quantile(0.10) # Za "oversold" uslove
-        informative_1w['cci_rolling_quantile_90'] = informative_1w['cci'].shift(1).rolling(window=lookback_1w).quantile(0.90) # Za "overbought" uslove
-
-        # #CMO Chande Momentum Oscillator
-        # informative_1w['cmo'] = ta.CMO(informative_1w)
-
-        # #DX Directional Movement Index
-        # informative_1w['dx'] = ta.DX(informative_1w)
-
-        # #MACD Moving Average Convergence/Divergence
-        macd = ta.MACD(informative_1w)
-        informative_1w['macd'] = macd['macd']
-        informative_1w['macd_signal'] = macd['macdsignal']
-        informative_1w['macd_histogram'] = macd['macdhist']
-
-        # #MACDEXT MACD with controllable MA type
-        # informative_1w['macdext'], _, _ = ta.MACDEXT(informative_1w)
-        
-        # #MACDFIX Moving Average Convergence/Divergence Fix 12/26
-        # informative_1w['macdfix'], _, _ = ta.MACDFIX(informative_1w)
-
-        # #MFI Money Flow Index
-        informative_1w['mfi'] = ta.MFI(informative_1w)
-        informative_1w['mfi_rolling_quantile_10'] = informative_1w['mfi'].shift(1).rolling(window=lookback_1w).quantile(0.10) # Za "oversold" uslove (npr. < 20)
-        informative_1w['mfi_rolling_quantile_20'] = informative_1w['mfi'].shift(1).rolling(window=lookback_1w).quantile(0.20) # Alternativni "oversold"
-        informative_1w['mfi_rolling_quantile_80'] = informative_1w['mfi'].shift(1).rolling(window=lookback_1w).quantile(0.80) # Alternativni "overbought"
-        informative_1w['mfi_rolling_quantile_90'] = informative_1w['mfi'].shift(1).rolling(window=lookback_1w).quantile(0.90) # Za "overbought" uslove (npr. > 80)
-
-        # #MINUS_DI Minus Directional Indicator
-        informative_1w['minus_di'] = ta.MINUS_DI(informative_1w)
-
-        # #MINUS_DM Minus Directional Movement
-        # informative_1w['minus_dm'] = ta.MINUS_DM(informative_1w)
-
-        # #MOM Momentum
-        # informative_1w['mom'] = ta.MOM(informative_1w)
-
-        # #PLUS_DI Plus Directional Indicator
-        informative_1w['plus_di'] = ta.PLUS_DI(informative_1w)
-
-        # #PLUS_DM Plus Directional Movement
-        # informative_1w['plus_dm'] = ta.PLUS_DM(informative_1w)
-
-        # #PPO Percentage Price Oscillator
-        # informative_1w['ppo'] = ta.PPO(informative_1w)
-
-        # #ROC Rate of change : ((price/prevPrice)-1)*100
-        informative_1w['roc'] = ta.ROC(informative_1w)
-
-        # #ROCP Rate of change Percentage: (price-prevPrice)/prevPrice
-        # informative_1w['rocp'] = ta.ROCP(informative_1w)
-
-        # #ROCR Rate of change ratio: (price/prevPrice)
-        # informative_1w['rocr'] = ta.ROCR(informative_1w)
-
-        # #ROCR100 Rate of change ratio 100 scale: (price/prevPrice)*100
-        # informative_1w['rocr100'] = ta.ROCR100(informative_1w)
-
-        # #RSI Relative Strength Index
-        informative_1w['rsi_3'] = ta.RSI(informative_1w,timeperiod=3)
-        informative_1w['rsi_5'] = ta.RSI(informative_1w,timeperiod=5)
-        informative_1w['rsi_8'] = ta.RSI(informative_1w,timeperiod=8)
-        informative_1w['rsi_13'] = ta.RSI(informative_1w,timeperiod=13)
-        informative_1w['rsi_21'] = ta.RSI(informative_1w,timeperiod=21)
-        informative_1w['rsi_34'] = ta.RSI(informative_1w,timeperiod=34)
-
-        informative_1w['rsi_3_rolling_quantile_10'] = informative_1w['rsi_3'].shift(1).rolling(window=lookback_1w).quantile(0.10)
-        informative_1w['rsi_3_rolling_quantile_90'] = informative_1w['rsi_3'].shift(1).rolling(window=lookback_1w).quantile(0.90)
-
-        informative_1w['rsi_8_rolling_quantile_10'] = informative_1w['rsi_8'].shift(1).rolling(window=lookback_1w).quantile(0.10)
-        informative_1w['rsi_8_rolling_quantile_90'] = informative_1w['rsi_8'].shift(1).rolling(window=lookback_1w).quantile(0.90)
-
-        informative_1w['rsi_13_rolling_quantile_10'] = informative_1w['rsi_13'].shift(1).rolling(window=lookback_1w).quantile(0.10)
-        informative_1w['rsi_13_rolling_quantile_90'] = informative_1w['rsi_13'].shift(1).rolling(window=lookback_1w).quantile(0.90)
-
-        informative_1w['rsi_21_rolling_quantile_10'] = informative_1w['rsi_21'].shift(1).rolling(window=lookback_1w).quantile(0.10)
-        informative_1w['rsi_21_rolling_quantile_90'] = informative_1w['rsi_21'].shift(1).rolling(window=lookback_1w).quantile(0.90)
-
-        informative_1w['rsi_34_rolling_quantile_10'] = informative_1w['rsi_34'].shift(1).rolling(window=lookback_1w).quantile(0.10)
-        informative_1w['rsi_34_rolling_quantile_90'] = informative_1w['rsi_34'].shift(1).rolling(window=lookback_1w).quantile(0.90)
-        # #STOCH Stochastic
-        # slowk, slowd = ta.STOCH(informative_1w)
-        # informative_1w['stoch_k'] = slowk
-        # informative_1w['stoch_d'] = slowd
-
-        # #STOCHF Stochastic Fast
-        # fastk, fastd = ta.STOCHF(informative_1w)
-        # informative_1w['stochf_k'] = fastk
-        # informative_1w['stochf_d'] = fastd
-        
-        # #STOCHRSI Stochastic Relative Strength Index
-        # informative_1w['stochrsi_k'], informative_1w['stochrsi_d'] = ta.STOCHRSI(informative_1w)
-
-        # #TRIX 1-day Rate-Of-Change (ROC) of a Triple Smooth EMA
-        informative_1w['trix'] = ta.TRIX(informative_1w)
-        informative_1w['trix_rolling_quantile_10'] = informative_1w['trix'].shift(1).rolling(window=lookback_1w).quantile(0.10) # Potencijalni signal za kupovinu (očekivanje rasta)
-        informative_1w['trix_rolling_quantile_90'] = informative_1w['trix'].shift(1).rolling(window=lookback_1w).quantile(0.90) # Potencijalni signal za prodaju (očekivanje pada)
-
-        # #ULTOSC Ultimate Oscillator
-        # informative_1w['ultosc'] = ta.ULTOSC(informative_1w)
-
-        # #WILLR Williams' %R
-        # informative_1w['willr'] = ta.WILLR(informative_1w)
-
-
-        # '''
-        # ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        # //                                                                                                                //
-        # //     _    __        __                             ____            __ _               __                        //
-        # //    | |  / /____   / /__  __ ____ ___   ___       /  _/____   ____/ /(_)_____ ____ _ / /_ ____   _____ _____    //
-        # //    | | / // __ \ / // / / // __ `__ \ / _ \      / / / __ \ / __  // // ___// __ `// __// __ \ / ___// ___/    //
-        # //    | |/ // /_/ // // /_/ // / / / / //  __/    _/ / / / / // /_/ // // /__ / /_/ // /_ / /_/ // /   (__  )     //
-        # //    |___/ \____//_/ \__,_//_/ /_/ /_/ \___/    /___//_/ /_/ \__,_//_/ \___/ \__,_/ \__/ \____//_/   /____/      //
-        # //                                                                                                                //
-        # ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        # '''
-
-        # #AD Chaikin A/D Line
-        # informative_1w['ad'] = ta.AD(informative_1w)
-
-        # #ADOSC Chaikin A/D Oscillator
-        # informative_1w['adosc'] = ta.ADOSC(informative_1w)
-
-        # #OBV On Balance Volume
-        informative_1w['obv'] = ta.OBV(informative_1w)
-
-
-        # '''
-        # ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        # //                                                                                                                        //
-        # //     _    __        __        __   _  __ _  __             ____            __ _               __                        //
-        # //    | |  / /____   / /____ _ / /_ (_)/ /(_)/ /_ __  __    /  _/____   ____/ /(_)_____ ____ _ / /_ ____   _____ _____    //
-        # //    | | / // __ \ / // __ `// __// // // // __// / / /    / / / __ \ / __  // // ___// __ `// __// __ \ / ___// ___/    //
-        # //    | |/ // /_/ // // /_/ // /_ / // // // /_ / /_/ /   _/ / / / / // /_/ // // /__ / /_/ // /_ / /_/ // /   (__  )     //
-        # //    |___/ \____//_/ \__,_/ \__//_//_//_/ \__/ \__, /   /___//_/ /_/ \__,_//_/ \___/ \__,_/ \__/ \____//_/   /____/      //
-        # //                                             /____/                                                                     //
-        # //                                                                                                                        //
-        # ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        # '''
-
-        # #ATR Average True Range
-        # informative_1w['atr'] = ta.ATR(informative_1w)
-
-        # #NATR Normalized Average True Range
-        # informative_1w['natr'] = ta.NATR(informative_1w)
-
-        # #TRANGE True Range
-        # informative_1w['trange'] = ta.TRANGE(informative_1w)
-
-
-        # '''
-        # //////////////////////////////////////////////////////////////////////////////////////////////////////////
-        # //                                                                                                      //
-        # //        ____         _                ______                           ____                           //
-        # //       / __ \ _____ (_)_____ ___     /_  __/_____ ____ _ ____   _____ / __/____   _____ ____ ___      //
-        # //      / /_/ // ___// // ___// _ \     / /  / ___// __ `// __ \ / ___// /_ / __ \ / ___// __ `__ \     //
-        # //     / ____// /   / // /__ /  __/    / /  / /   / /_/ // / / /(__  )/ __// /_/ // /   / / / / / /     //
-        # //    /_/    /_/   /_/ \___/ \___/    /_/  /_/    \__,_//_/ /_//____//_/   \____//_/   /_/ /_/ /_/      //
-        # //                                                                                                      //
-        # //////////////////////////////////////////////////////////////////////////////////////////////////////////
-        # '''
-
-        # #AVGPRICE Average Price
-        # informative_1w['avgprice'] = ta.AVGPRICE(informative_1w)
-
-        # #MEDPRICE Median Price
-        # informative_1w['medprice'] = ta.MEDPRICE(informative_1w)
-
-        # #TYPPRICE Typical Price
-        # informative_1w['typprice'] = ta.TYPPRICE(informative_1w)
-
-        # #WCLPRICE Weighted Close Price
-        # informative_1w['wclprice'] = ta.WCLPRICE(informative_1w)
-
-        # '''
-        # //////////////////////////////////////////////////////////////////////////////////////////////////////////
-        # //                                                                                                      //
-        # //       ______              __           ____            __ _               __                         //
-        # //      / ____/__  __ _____ / /___       /  _/____   ____/ /(_)_____ ____ _ / /_ ____   _____ _____     //
-        # //     / /    / / / // ___// // _ \      / / / __ \ / __  // // ___// __ `// __// __ \ / ___// ___/     //
-        # //    / /___ / /_/ // /__ / //  __/    _/ / / / / // /_/ // // /__ / /_/ // /_ / /_/ // /   (__  )      //
-        # //    \____/ \__, / \___//_/ \___/    /___//_/ /_/ \__,_//_/ \___/ \__,_/ \__/ \____//_/   /____/       //
-        # //          /____/                                                                                      //
-        # //                                                                                                      //
-        # //////////////////////////////////////////////////////////////////////////////////////////////////////////
-        # '''
-
-        # #HT_DCPERIOD Hilbert Transform - Dominant Cycle Period
-        informative_1w['ht_dcperiod'] = ta.HT_DCPERIOD(informative_1w)
-
-        # #HT_DCPHASE Hilbert Transform - Dominant Cycle Phase
-        # informative_1w['ht_dcphase'] = ta.HT_DCPHASE(informative_1w)
-
-        # #HT_PHASOR Hilbert Transform - Phasor Components
-        # informative_1w['ht_phasor_inphase'], informative_1w['ht_phasor_quadrature'] = ta.HT_PHASOR(informative_1w)
-
-        # #HT_SINE Hilbert Transform - SineWave
-        # informative_1w['ht_sine'], informative_1w['ht_leadsine'] = ta.HT_SINE(informative_1w)
-
-        # #HT_TRENDMODE Hilbert Transform - Trend vs Cycle Mode
-        # informative_1w['ht_trendmode'] = ta.HT_TRENDMODE(informative_1w)
-
         dataframe = merge_informative_pair(dataframe, informative_1h, self.timeframe, '1h', ffill=True)
         dataframe = merge_informative_pair(dataframe, informative_4h, self.timeframe, '4h', ffill=True)
         dataframe = merge_informative_pair(dataframe, informative_1d, self.timeframe, '1d', ffill=True)
-        dataframe = merge_informative_pair(dataframe, informative_1w, self.timeframe, '1w', ffill=True)
 
         dataframe['custom_stop_keep'] = (
             (dataframe['ema_25_1h'] > dataframe['ema_99_1h']) &
@@ -1880,170 +1526,144 @@ class Vrach_Ultimate_PRO(IStrategy):
 
         return dataframe
 
-    def assign_trend_type(self, dataframe: DataFrame) -> DataFrame:
-        dataframe['trend_type'] = 'none'
+    # def assign_trend_type(self, dataframe: DataFrame) -> DataFrame:
+    #     dataframe['trend_type'] = 'none'
 
-        scalp_cond = (
-            (dataframe['rsi_8'] < dataframe['rsi_8_rolling_quantile_10']) & (dataframe['rsi_8'] > dataframe['rsi_8'].shift(1)) &
-            (dataframe['ema_7'] > dataframe['ema_25']) &
-            (dataframe['macd'] > dataframe['macd_signal']) &
-            (dataframe['adx'] > dataframe['adx_rolling_quantile_25']) & (dataframe['plus_di'] > dataframe['minus_di'])
-        )
+    #     scalp_cond = (
+    #         (dataframe['rsi_8'] < dataframe['rsi_8_rolling_quantile_10']) & (dataframe['rsi_8'] > dataframe['rsi_8'].shift(1)) &
+    #         (dataframe['ema_7'] > dataframe['ema_25']) &
+    #         (dataframe['macd'] > dataframe['macd_signal']) &
+    #         (dataframe['adx'] > dataframe['adx_rolling_quantile_25']) & (dataframe['plus_di'] > dataframe['minus_di'])
+    #     )
 
-        swing_cond = (
-            (dataframe['ema_50_4h'] > dataframe['close']) &
-            (dataframe['bbands_breakout_up_4h']) &
-            (dataframe['rsi_13_4h'] > 40) &
-            (dataframe['macd_4h'] > dataframe['macd_signal_4h'])
-        )
+    #     swing_cond = (
+    #         (dataframe['ema_50_4h'] > dataframe['close']) &
+    #         (dataframe['bbands_breakout_up_4h']) &
+    #         (dataframe['rsi_13_4h'] > 40) &
+    #         (dataframe['macd_4h'] > dataframe['macd_signal_4h'])
+    #     )
 
-        long_cond = (
-            (dataframe['ema_99_1d'] > dataframe['close']) &
-            (dataframe['macd_histogram_1d'] > 0) &
-            (dataframe['rsi_13_1d'] > 55)
-        )
+    #     long_cond = (
+    #         (dataframe['ema_99_1d'] > dataframe['close']) &
+    #         (dataframe['macd_histogram_1d'] > 0) &
+    #         (dataframe['rsi_13_1d'] > 55)
+    #     )
 
-        trend_cond = (
-            (dataframe['ema_200_1w'] > dataframe['close']) &
-            (dataframe['adx_1w'] > 25) &
-            (dataframe['obv_1w'] > 0)
-        )
+    #     trend_cond = (
+    #         (dataframe['ema_200_1d'] > dataframe['close']) &
+    #         (dataframe['adx_1d'] > 25) &
+    #         (dataframe['obv_1d'] > 0)
+    #     )
 
-        dataframe.loc[scalp_cond, 'trend_type'] = 'scalp'
-        dataframe.loc[swing_cond, 'trend_type'] = 'swing'
-        dataframe.loc[trend_cond, 'trend_type'] = 'trend'
-        dataframe.loc[long_cond, 'trend_type'] = 'long'
+    #     dataframe.loc[scalp_cond, 'trend_type'] = 'scalp'
+    #     dataframe.loc[swing_cond, 'trend_type'] = 'swing'
+    #     dataframe.loc[trend_cond, 'trend_type'] = 'trend'
+    #     dataframe.loc[long_cond, 'trend_type'] = 'long'
 
-        return dataframe
+    #     return dataframe
 
     def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
-        """
-        Populates the 'enter_long' and 'enter_tag' columns based on trend_type.
-        Ensures compatibility with Freqtrade UI for visibility of entry signals.
-        """
-        dataframe = self.assign_trend_type(dataframe)
-
-        # Initialize columns
-        dataframe['enter_long'] = 0
-        dataframe['enter_tag'] = None
 
         # Scalping Entry
         dataframe.loc[
             (
-                (dataframe['trend_type'] == 'scalp') &
-                (dataframe['volume'].pct_change() > 0.05) &
-                (dataframe['close'] > dataframe['ema_7'])
+                (dataframe['rsi_8'] < dataframe['rsi_8_rolling_quantile_10']) & (dataframe['rsi_8'] > dataframe['rsi_8'].shift(1)) &
+                #(dataframe['ema_7'] > dataframe['ema_25']) &
+                (dataframe['close'] < dataframe['close'].shift(1).rolling(window=36).quantile(0.10))
             ),
-            ['enter_long', 'scalp_entry']
-        ] = (1, 'scalp_entry')
+            ['enter_long', 'enter_tag']] = (1, 'scalp')
 
-        # Swing Entry
-        dataframe.loc[
-            (
-                (dataframe['trend_type'] == 'swing') &
-                (dataframe['rsi_13_4h'] < dataframe['rsi_13_rolling_quantile_10_4h']) &
-                (dataframe['macd_4h'] > dataframe['macd_signal_4h'])
-            ),
-            ['enter_long', 'swing_entry']
-        ] = (1, 'swing_entry')
+        # # Swing Entry
+        # dataframe.loc[
+        #     (
+        #         (dataframe['trend_type'] == 'swing') &
+        #         (dataframe['rsi_13_4h'] < dataframe['rsi_13_rolling_quantile_10_4h']) &
+        #         (dataframe['macd_4h'] > dataframe['macd_signal_4h'])
+        #     ),
+        #     ['enter_long', 'swing_entry']
+        # ] = (1, 'swing_entry')
 
-        # Long-Term Entry
-        dataframe.loc[
-            (
-                (dataframe['trend_type'] == 'long') &
-                (dataframe['rsi_13_1d'] < dataframe['rsi_13_rolling_quantile_10_1d']) &
-                (dataframe['macd_histogram_1d'] > 0)
-            ),
-            ['enter_long', 'long_entry']
-        ] = (1, 'long_entry')
+        # # Long-Term Entry
+        # dataframe.loc[
+        #     (
+        #         (dataframe['trend_type'] == 'long') &
+        #         (dataframe['rsi_13_1d'] < dataframe['rsi_13_rolling_quantile_10_1d']) &
+        #         (dataframe['macd_histogram_1d'] > 0)
+        #     ),
+        #     ['enter_long', 'long_entry']
+        # ] = (1, 'long_entry')
 
-        # Trend-Following Entry
-        dataframe.loc[
-            (
-                (dataframe['trend_type'] == 'trend') &
-                (dataframe['obv_1w'] > dataframe['obv_1w'].rolling(5).mean()) &
-                (dataframe['adx_1w'] > dataframe['adx_rolling_quantile_25_1w'])
-            ),
-            ['enter_long', 'trend_entry']
-        ] = (1, 'trend_entry')
+        # # Trend-Following Entry
+        # dataframe.loc[
+        #     (
+        #         (dataframe['trend_type'] == 'trend') &
+        #         (dataframe['obv_1d'] > dataframe['obv_1d'].rolling(5).mean()) &
+        #         (dataframe['adx_1d'] > dataframe['adx_rolling_quantile_25_1d'])
+        #     ),
+        #     ['enter_long', 'trend_entry']
+        # ] = (1, 'trend_entry')
 
         return dataframe
 
 
     def populate_exit_trend(self, dataframe: pd.DataFrame, metadata: dict) -> pd.DataFrame:
-        """
-        Populates the 'exit_long' and 'exit_tag' columns with detailed logic for exits
-        per strategy type: scalping, swing, long, and trend-following.
-        """
-        dataframe = self.assign_trend_type(dataframe)
-
-        dataframe['exit_long'] = 0
-        dataframe['exit_tag'] = None
 
         # === Scalping Exit ===
         dataframe.loc[
             (
-                (dataframe['trend_type'] == 'scalp') &
-                (
-                    (dataframe['ema_7'] < dataframe['ema_25']) |  # EMA 5 < EMA 13
-                    (dataframe['sar'] > dataframe['close']) |  # SAR flip iznad sveće
-                    (dataframe['bbands_breakout_down']) |  # BBANDS breakout down
-                    ((dataframe['rsi_3'] >  dataframe['rsi_3_rolling_quantile_90']) & (dataframe['rsi_3'] < dataframe['rsi_3'].shift(1))) |
-                    ((dataframe['cci'] > dataframe['cci_rolling_quantile_90']) & (dataframe['cci'] < dataframe['cci'].shift(1))) |
-                    (dataframe['mfi'] > dataframe['mfi_rolling_quantile_80']) |
-                    ((dataframe['adx'] > dataframe['adx_rolling_quantile_75']) & (dataframe['minus_di'] > dataframe['plus_di']))
-                )
+                ((dataframe['rsi_21'] >  dataframe['rsi_21_rolling_quantile_90']) & (dataframe['rsi_3'] < dataframe['rsi_3'].shift(1))) &
+                (dataframe['close'] > dataframe['close'].shift(1).rolling(window=36).quantile(0.9))
             ),
             ['exit_long', 'scalp_exit']
         ] = (1, 'scalp_exit')
 
-        # === Swing Exit ===
-        dataframe.loc[
-            (
-                (dataframe['trend_type'] == 'swing') &
-                (
-                    (dataframe['ema_50_4h'] < dataframe['close']) |  # EMA50 acting as resistance
-                    (dataframe['bbands_breakout_down_4h']) |  # BBANDS breakout down
-                    (dataframe['kama_trend_down_4h']) |  # KAMA okrenut nadole (pretpostavimo da postoji ta kolona)
-                    (dataframe['rsi_13_4h'] < 60) |
-                    (dataframe['macd_4h'] < dataframe['macd_signal_4h']) |
-                    (dataframe['obv_4h'] < dataframe['obv_4h'].shift(1)) |  # OBV pada
-                    (dataframe['trix_4h'] < 0)
-                )
-            ),
-            ['exit_long', 'swing_exit']
-        ] = (1, 'swing_exit')
+        # # === Swing Exit ===
+        # dataframe.loc[
+        #     (
+        #         (dataframe['trend_type'] == 'swing') &
+        #         (
+        #             (dataframe['ema_50_4h'] < dataframe['close']) |  # EMA50 acting as resistance
+        #             (dataframe['bbands_breakout_down_4h']) |  # BBANDS breakout down
+        #             (dataframe['kama_trend_down_4h']) |  # KAMA okrenut nadole (pretpostavimo da postoji ta kolona)
+        #             (dataframe['rsi_13_4h'] < 60) |
+        #             (dataframe['macd_4h'] < dataframe['macd_signal_4h']) |
+        #             (dataframe['obv_4h'] < dataframe['obv_4h'].shift(1)) |  # OBV pada
+        #             (dataframe['trix_4h'] < 0)
+        #         )
+        #     ),
+        #     ['exit_long', 'swing_exit']
+        # ] = (1, 'swing_exit')
 
-        # === Long Term Exit ===
-        dataframe.loc[
-            (
-                (dataframe['trend_type'] == 'long') &
-                (
-                    (dataframe['ema_200_1d'] < dataframe['close']) |  # EMA200 kao otpor
-                    (dataframe['sar_1d'] > dataframe['close']) |
-                    (dataframe['bbands_breakout_down_1d']) |
-                    (dataframe['mfi_1d'] < 80) |
-                    (dataframe['macd_histogram_1d'] < 0) |
-                    (dataframe['roc_1d'] < 0)
-                )
-            ),
-            ['exit_long', 'long_exit']
-        ] = (1, 'long_exit')
+        # # === Long Term Exit ===
+        # dataframe.loc[
+        #     (
+        #         (dataframe['trend_type'] == 'long') &
+        #         (
+        #             (dataframe['ema_200_1d'] < dataframe['close']) |  # EMA200 kao otpor
+        #             (dataframe['sar_1d'] > dataframe['close']) |
+        #             (dataframe['bbands_breakout_down_1d']) |
+        #             (dataframe['mfi_1d'] < 80) |
+        #             (dataframe['macd_histogram_1d'] < 0) |
+        #             (dataframe['roc_1d'] < 0)
+        #         )
+        #     ),
+        #     ['exit_long', 'long_exit']
+        # ] = (1, 'long_exit')
 
-        # === Trend Exit ===
-        dataframe.loc[
-            (
-                (dataframe['trend_type'] == 'trend') &
-                (
-                    (dataframe['ema_200_1w'] < dataframe['close']) |
-                    (dataframe['kama_trend_down_1w']) |  # Ili MAMA — pretpostavimo da postoji
-                    ((dataframe['adx_1w'] > 25) & (dataframe['minus_di_1w'] > dataframe['plus_di_1w'])) |
-                    (dataframe['obv_1w'] < dataframe['obv_1w'].shift(1)) |
-                    (dataframe['ht_dcperiod_1w'] > dataframe['ht_dcperiod_1w'].shift(1))  # momentum opada
-                )
-            ),
-            ['exit_long', 'trend_exit']
-        ] = (1, 'trend_exit')
+        # # === Trend Exit ===
+        # dataframe.loc[
+        #     (
+        #         (dataframe['trend_type'] == 'trend') &
+        #         (
+        #             (dataframe['ema_200_1d'] < dataframe['close']) |
+        #             (dataframe['kama_trend_down_1d']) |  # Ili MAMA — pretpostavimo da postoji
+        #             ((dataframe['adx_1d'] > 25) & (dataframe['minus_di_1d'] > dataframe['plus_di_1d'])) |
+        #             (dataframe['obv_1d'] < dataframe['obv_1d'].shift(1)) |
+        #             (dataframe['ht_dcperiod_1d'] > dataframe['ht_dcperiod_1d'].shift(1))  # momentum opada
+        #         )
+        #     ),
+        #     ['exit_long', 'trend_exit']
+        # ] = (1, 'trend_exit')
 
         return dataframe
 
