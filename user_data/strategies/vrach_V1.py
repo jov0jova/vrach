@@ -1370,7 +1370,7 @@ class Vrach_Ultimate_PRO(IStrategy):
         dataframe['trend_type'] = 'none'
 
         scalp_cond = (
-            (dataframe['rsi_7'] < 30) & (dataframe['rsi_7'] > dataframe['rsi_7'].shift(1)) &
+            (dataframe['rsi_8'] < 30) & (dataframe['rsi_8'] > dataframe['rsi_8'].shift(1)) &
             (dataframe['ema_7'] > dataframe['ema_25']) &
             (dataframe['macd'] > dataframe['macdsignal']) &
             (dataframe['adx'] > 20) & (dataframe['plus_di'] > dataframe['minus_di'])
