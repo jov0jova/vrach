@@ -1364,13 +1364,11 @@ class Vrach_Ultimate_PRO(IStrategy):
         # #HT_TRENDMODE Hilbert Transform - Trend vs Cycle Mode
         # dataframe['ht_trendmode'] = ta.HT_TRENDMODE(dataframe)
 
-        # Trend Type Initialization
+        return dataframe
+
+    def assign_trend_type(dataframe):
         dataframe['trend_type'] = 'none'
 
-
-
-
-        # Scalping Condition (1m–15m)
         scalp_cond = (
             (dataframe['rsi_7'] < 30) & (dataframe['rsi_7'] > dataframe['rsi_7'].shift(1)) &
             (dataframe['ema_7'] > dataframe['ema_25']) &
@@ -1378,7 +1376,6 @@ class Vrach_Ultimate_PRO(IStrategy):
             (dataframe['adx'] > 20) & (dataframe['plus_di'] > dataframe['minus_di'])
         )
 
-        # Swing Condition (1H–4H)
         swing_cond = (
             (dataframe['ema_50_4h'] > dataframe['close']) &
             (dataframe['bbands_breakout_up_4h']) &
@@ -1386,43 +1383,22 @@ class Vrach_Ultimate_PRO(IStrategy):
             (dataframe['macd_4h'] > dataframe['macdsignal_4h'])
         )
 
-        # Medium Term (1D)
         long_cond = (
             (dataframe['ema_99_1d'] > dataframe['close']) &
             (dataframe['macd_histogram_1d'] > 0) &
             (dataframe['rsi_13_1d'] > 55)
         )
 
-        # Long-Term (1W)
         trend_cond = (
             (dataframe['ema_200_1w'] > dataframe['close']) &
-            (dataframe['adx_1w'] > 25) & 
+            (dataframe['adx_1w'] > 25) &
             (dataframe['obv_1w'] > 0)
         )
 
-
-        # First assign the lowest priority (scalp)
         dataframe.loc[scalp_cond, 'trend_type'] = 'scalp'
-
-        # Then override with swing if condition met
         dataframe.loc[swing_cond, 'trend_type'] = 'swing'
-
-        # Then override with trend if condition met
         dataframe.loc[trend_cond, 'trend_type'] = 'trend'
-
-        # Finally override with long if condition met (highest priority)
         dataframe.loc[long_cond, 'trend_type'] = 'long'
-
-
-
-        dataframe['custom_stop_keep'] = (
-            (dataframe['ema_50_1h'] > dataframe['ema_99_1h']) &                      # Trend još pozitivan
-            (dataframe['sar_1h'] < dataframe['close']) &                              # SAR ispod sveće
-            (dataframe['macd_1h'] > dataframe['macdsignal_1h']) &                     # MACD još bullish
-            (dataframe['adx_1h'] > 20) &                                              # Trend jak
-            (dataframe['plus_di_1h'] > dataframe['minus_di_1h']) &                    # +DI dominira
-            (dataframe['rsi_13_1h'] > 40)                                             # RSI iznad zone panike
-        ).astype('bool')
 
         return dataframe
 
@@ -1431,6 +1407,7 @@ class Vrach_Ultimate_PRO(IStrategy):
         Populates the 'enter_long' and 'enter_tag' columns based on trend_type.
         Ensures compatibility with Freqtrade UI for visibility of entry signals.
         """
+        dataframe = self.assign_trend_type(dataframe)
 
         # Initialize columns
         dataframe['enter_long'] = 0
@@ -1484,7 +1461,8 @@ class Vrach_Ultimate_PRO(IStrategy):
         Populates the 'exit_long' and 'exit_tag' columns with detailed logic for exits
         per strategy type: scalping, swing, long, and trend-following.
         """
-
+        dataframe = self.assign_trend_type(dataframe)
+        
         dataframe['exit_long'] = 0
         dataframe['exit_tag'] = None
 
