@@ -72,6 +72,339 @@ class Vrach_Ultimate_PRO(IStrategy):
 
     def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         
+
+
+
+
+
+        # '''
+        # ////////////////////////////////////////////////////////////////////////////////////////////////////
+        # //                                                                                                //
+        # //       ____                      __                  _____  __              __ _                //
+        # //      / __ \ _   __ ___   _____ / /____ _ ____      / ___/ / /_ __  __ ____/ /(_)___   _____    //
+        # //     / / / /| | / // _ \ / ___// // __ `// __ \     \__ \ / __// / / // __  // // _ \ / ___/    //
+        # //    / /_/ / | |/ //  __// /   / // /_/ // /_/ /    ___/ // /_ / /_/ // /_/ // //  __/(__  )     //
+        # //    \____/  |___/ \___//_/   /_/ \__,_// .___/    /____/ \__/ \__,_/ \__,_//_/ \___//____/      //
+        # //                                      /_/                                                       //
+        # //                                                                                                //
+        # ////////////////////////////////////////////////////////////////////////////////////////////////////
+        # '''
+
+        # #BBANDS Bollinger Bands
+        bb = ta.BBANDS(dataframe, timeperiod=20)
+        dataframe['bb_upper'] = bb['upperband']
+        dataframe['bb_middle'] = bb['middleband']
+        dataframe['bb_lower'] = bb['lowerband']
+        dataframe['bbands_breakout_down'] = dataframe['close'] < dataframe['bb_lower']
+
+        
+
+        # #DEMA Double Exponential Moving Average
+        # dataframe['dema_7'] = ta.DEMA(dataframe, timeperiod=7)
+        # dataframe['dema_25'] = ta.DEMA(dataframe, timeperiod=25)
+        # dataframe['dema_99'] = ta.DEMA(dataframe, timeperiod=99)
+        # dataframe['dema_200'] = ta.DEMA(dataframe, timeperiod=200)
+
+        # #EMA Exponential Moving Average
+        dataframe['ema_7'] = ta.EMA(dataframe, timeperiod=7)
+        dataframe['ema_25'] = ta.EMA(dataframe, timeperiod=25)
+        dataframe['ema_50'] = ta.EMA(dataframe, timeperiod=50)
+        dataframe['ema_99'] = ta.EMA(dataframe, timeperiod=99)
+        dataframe['ema_200'] = ta.EMA(dataframe, timeperiod=200)
+
+        # #FEMA Fibonacci Exponenetial Moving Average
+        # dataframe['fema_3'] = ta.EMA(dataframe, timeperiod=3)
+        # dataframe['fema_5'] = ta.EMA(dataframe, timeperiod=5)
+        # dataframe['fema_8'] = ta.EMA(dataframe, timeperiod=8)
+        # dataframe['fema_13'] = ta.EMA(dataframe, timeperiod=13)
+        # dataframe['fema_21'] = ta.EMA(dataframe, timeperiod=21)
+        # dataframe['fema_34'] = ta.EMA(dataframe, timeperiod=34)
+        # dataframe['fema_55'] = ta.EMA(dataframe, timeperiod=55)
+        # dataframe['fema_89'] = ta.EMA(dataframe, timeperiod=89)
+        # dataframe['fema_144'] = ta.EMA(dataframe, timeperiod=144)
+        # dataframe['fema_233'] = ta.EMA(dataframe, timeperiod=233)
+
+        # #HT_TRENDLINE Hilbert Transform - Instantaneous Trendline
+        # dataframe['ht_trendline'] = ta.HT_TRENDLINE(dataframe)
+
+        # #KAMA Kaufman Adaptive Moving Average
+        dataframe['kama_7'] = ta.KAMA(dataframe, timeperiod=7)
+        dataframe['kama_25'] = ta.KAMA(dataframe, timeperiod=25)
+        dataframe['kama_99'] = ta.KAMA(dataframe, timeperiod=99)
+        dataframe['kama_200'] = ta.KAMA(dataframe, timeperiod=200)
+        dataframe['kama_trend_up'] = dataframe['kama_25'] > dataframe['kama_25'].shift(1)
+        dataframe['kama_trend_down'] = dataframe['kama_25'] < dataframe['kama_25'].shift(1)
+
+        # #MA Moving average
+
+
+        # #MAMA MESA Adaptive Moving Average
+        # dataframe['mama'], dataframe['fama'] = ta.MAMA(dataframe)
+
+        # #MAVP Moving average with variable period
+
+
+        # #MIDPOINT MidPoint over period
+        # dataframe['midpoint_7'] = ta.MIDPOINT(dataframe, timeperiod=7)
+        # dataframe['midpoint_25'] = ta.MIDPOINT(dataframe, timeperiod=25)
+        # dataframe['midpoint_99'] = ta.MIDPOINT(dataframe, timeperiod=99)
+        # dataframe['midpoint_200'] = ta.MIDPOINT(dataframe, timeperiod=200)
+
+        # #MIDPRICE Midpoint Price over period
+        # dataframe['midprice_7'] = ta.MIDPRICE(dataframe, timeperiod=7)
+        # dataframe['midprice_25'] = ta.MIDPRICE(dataframe, timeperiod=25)
+        # dataframe['midprice_99'] = ta.MIDPRICE(dataframe, timeperiod=99)
+        # dataframe['midprice_200'] = ta.MIDPRICE(dataframe, timeperiod=200)
+        
+        # #SAR Parabolic SAR
+        dataframe['sar'] = ta.SAR(dataframe)
+
+        # #SAREXT Parabolic SAR - Extended
+        # dataframe['sarext'] = ta.SAREXT(dataframe)
+
+        # #SMA Simple Moving Average
+        # dataframe['sma_7'] = ta.SMA(dataframe, timeperiod=7)
+        # dataframe['sma_25'] = ta.SMA(dataframe, timeperiod=25)
+        # dataframe['sma_99'] = ta.SMA(dataframe, timeperiod=99)
+        # dataframe['sma_200'] = ta.SMA(dataframe, timeperiod=200)
+
+        # #T3 Triple Exponential Moving Average (T3)
+        # dataframe['t3_7'] = ta.T3(dataframe, timeperiod=7)
+        # dataframe['t3_25'] = ta.T3(dataframe, timeperiod=25)
+        # dataframe['t3_99'] = ta.T3(dataframe, timeperiod=99)
+        # dataframe['t3_200'] = ta.T3(dataframe, timeperiod=200)
+
+        # #TEMA Triple Exponential Moving Average
+        # dataframe['tema_7'] = ta.TEMA(dataframe, timeperiod=20)
+        # dataframe['tema_25'] = ta.TEMA(dataframe, timeperiod=25)
+        # dataframe['tema_99'] = ta.TEMA(dataframe, timeperiod=99)
+        # dataframe['tema_200'] = ta.TEMA(dataframe, timeperiod=200)
+
+        # #TRIMA Triangular Moving Average
+        # dataframe['trima_7'] = ta.TRIMA(dataframe, timeperiod=7)
+        # dataframe['trima_25'] = ta.TRIMA(dataframe, timeperiod=25)
+        # dataframe['trima_99'] = ta.TRIMA(dataframe, timeperiod=99)
+        # dataframe['trima_200'] = ta.TRIMA(dataframe, timeperiod=200)
+
+        # #WMA Weighted Moving Average
+        # dataframe['wma_7'] = ta.WMA(dataframe, timeperiod=7)
+        # dataframe['wma_25'] = ta.WMA(dataframe, timeperiod=25)
+        # dataframe['wma_99'] = ta.WMA(dataframe, timeperiod=99)
+        # dataframe['wma_200'] = ta.WMA(dataframe, timeperiod=200)
+
+        # '''
+        # ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        # //                                                                                                                                        //
+        # //        __  ___                                __                         ____            __ _               __                         //
+        # //       /  |/  /____   ____ ___   ___   ____   / /_ __  __ ____ ___       /  _/____   ____/ /(_)_____ ____ _ / /_ ____   _____ _____     //
+        # //      / /|_/ // __ \ / __ `__ \ / _ \ / __ \ / __// / / // __ `__ \      / / / __ \ / __  // // ___// __ `// __// __ \ / ___// ___/     //
+        # //     / /  / // /_/ // / / / / //  __// / / // /_ / /_/ // / / / / /    _/ / / / / // /_/ // // /__ / /_/ // /_ / /_/ // /   (__  )      //
+        # //    /_/  /_/ \____//_/ /_/ /_/ \___//_/ /_/ \__/ \__,_//_/ /_/ /_/    /___//_/ /_/ \__,_//_/ \___/ \__,_/ \__/ \____//_/   /____/       //
+        # //                                                                                                                                        //
+        # ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        # '''
+
+        # #ADX Average Directional Movement Index
+        dataframe['adx'] = ta.ADX(dataframe)
+
+        # #ADXR Average Directional Movement Index Rating
+        # dataframe['adxr'] = ta.ADXR(dataframe)
+
+        # #APO Absolute Price Oscillator
+        # dataframe['apo'] = ta.APO(dataframe)
+
+        # #AROON Aroon
+        # aroon_down, aroon_up = ta.AROON(dataframe)
+        # dataframe['aroon_down'] = aroon_down
+        # dataframe['aroon_up'] = aroon_up
+
+        # #AROONOSC Aroon Oscillator
+        # dataframe['aroonosc'] = ta.AROONOSC(dataframe)
+
+        # #BOP Balance Of Power
+        # dataframe['bop'] = ta.BOP(dataframe)
+
+        # #CCI Commodity Channel Index
+        dataframe['cci'] = ta.CCI(dataframe)
+
+        # #CMO Chande Momentum Oscillator
+        # dataframe['cmo'] = ta.CMO(dataframe)
+
+        # #DX Directional Movement Index
+        # dataframe['dx'] = ta.DX(dataframe)
+
+        # #MACD Moving Average Convergence/Divergence
+        macd, macdsignal, macdhist = ta.MACD(dataframe)
+        dataframe['macd'] = macd
+        dataframe['macdsignal'] = macdsignal
+        dataframe['macdhist'] = macdhist
+
+        # #MACDEXT MACD with controllable MA type
+        # dataframe['macdext'], _, _ = ta.MACDEXT(dataframe)
+        
+        # #MACDFIX Moving Average Convergence/Divergence Fix 12/26
+        # dataframe['macdfix'], _, _ = ta.MACDFIX(dataframe)
+
+        # #MFI Money Flow Index
+        dataframe['mfi'] = ta.MFI(dataframe)
+
+        # #MINUS_DI Minus Directional Indicator
+        dataframe['minus_di'] = ta.MINUS_DI(dataframe)
+
+        # #MINUS_DM Minus Directional Movement
+        # dataframe['minus_dm'] = ta.MINUS_DM(dataframe)
+
+        # #MOM Momentum
+        # dataframe['mom'] = ta.MOM(dataframe)
+
+        # #PLUS_DI Plus Directional Indicator
+        dataframe['plus_di'] = ta.PLUS_DI(dataframe)
+
+        # #PLUS_DM Plus Directional Movement
+        # dataframe['plus_dm'] = ta.PLUS_DM(dataframe)
+
+        # #PPO Percentage Price Oscillator
+        # dataframe['ppo'] = ta.PPO(dataframe)
+
+        # #ROC Rate of change : ((price/prevPrice)-1)*100
+        # dataframe['roc'] = ta.ROC(dataframe)
+
+        # #ROCP Rate of change Percentage: (price-prevPrice)/prevPrice
+        # dataframe['rocp'] = ta.ROCP(dataframe)
+
+        # #ROCR Rate of change ratio: (price/prevPrice)
+        # dataframe['rocr'] = ta.ROCR(dataframe)
+
+        # #ROCR100 Rate of change ratio 100 scale: (price/prevPrice)*100
+        # dataframe['rocr100'] = ta.ROCR100(dataframe)
+
+        # #RSI Relative Strength Index
+        dataframe['rsi_3'] = ta.RSI(dataframe,timeperiod=3)
+        dataframe['rsi_5'] = ta.RSI(dataframe,timeperiod=5)
+        dataframe['rsi_8'] = ta.RSI(dataframe,timeperiod=8)
+        dataframe['rsi_13'] = ta.RSI(dataframe,timeperiod=13)
+        dataframe['rsi_21'] = ta.RSI(dataframe,timeperiod=21)
+        dataframe['rsi_34'] = ta.RSI(dataframe,timeperiod=34)
+
+        # #STOCH Stochastic
+        # slowk, slowd = ta.STOCH(dataframe)
+        # dataframe['stoch_k'] = slowk
+        # dataframe['stoch_d'] = slowd
+
+        # #STOCHF Stochastic Fast
+        # fastk, fastd = ta.STOCHF(dataframe)
+        # dataframe['stochf_k'] = fastk
+        # dataframe['stochf_d'] = fastd
+        
+        # #STOCHRSI Stochastic Relative Strength Index
+        # dataframe['stochrsi_k'], dataframe['stochrsi_d'] = ta.STOCHRSI(dataframe)
+
+        # #TRIX 1-day Rate-Of-Change (ROC) of a Triple Smooth EMA
+        dataframe['trix'] = ta.TRIX(dataframe)
+
+        # #ULTOSC Ultimate Oscillator
+        # dataframe['ultosc'] = ta.ULTOSC(dataframe)
+
+        # #WILLR Williams' %R
+        # dataframe['willr'] = ta.WILLR(dataframe)
+
+
+        # '''
+        # ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        # //                                                                                                                //
+        # //     _    __        __                             ____            __ _               __                        //
+        # //    | |  / /____   / /__  __ ____ ___   ___       /  _/____   ____/ /(_)_____ ____ _ / /_ ____   _____ _____    //
+        # //    | | / // __ \ / // / / // __ `__ \ / _ \      / / / __ \ / __  // // ___// __ `// __// __ \ / ___// ___/    //
+        # //    | |/ // /_/ // // /_/ // / / / / //  __/    _/ / / / / // /_/ // // /__ / /_/ // /_ / /_/ // /   (__  )     //
+        # //    |___/ \____//_/ \__,_//_/ /_/ /_/ \___/    /___//_/ /_/ \__,_//_/ \___/ \__,_/ \__/ \____//_/   /____/      //
+        # //                                                                                                                //
+        # ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        # '''
+
+        # #AD Chaikin A/D Line
+        # dataframe['ad'] = ta.AD(dataframe)
+
+        # #ADOSC Chaikin A/D Oscillator
+        # dataframe['adosc'] = ta.ADOSC(dataframe)
+
+        # #OBV On Balance Volume
+        dataframe['obv'] = ta.OBV(dataframe)
+
+
+        # '''
+        # ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        # //                                                                                                                        //
+        # //     _    __        __        __   _  __ _  __             ____            __ _               __                        //
+        # //    | |  / /____   / /____ _ / /_ (_)/ /(_)/ /_ __  __    /  _/____   ____/ /(_)_____ ____ _ / /_ ____   _____ _____    //
+        # //    | | / // __ \ / // __ `// __// // // // __// / / /    / / / __ \ / __  // // ___// __ `// __// __ \ / ___// ___/    //
+        # //    | |/ // /_/ // // /_/ // /_ / // // // /_ / /_/ /   _/ / / / / // /_/ // // /__ / /_/ // /_ / /_/ // /   (__  )     //
+        # //    |___/ \____//_/ \__,_/ \__//_//_//_/ \__/ \__, /   /___//_/ /_/ \__,_//_/ \___/ \__,_/ \__/ \____//_/   /____/      //
+        # //                                             /____/                                                                     //
+        # //                                                                                                                        //
+        # ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        # '''
+
+        # #ATR Average True Range
+        # dataframe['atr'] = ta.ATR(dataframe)
+
+        # #NATR Normalized Average True Range
+        # dataframe['natr'] = ta.NATR(dataframe)
+
+        # #TRANGE True Range
+        # dataframe['trange'] = ta.TRANGE(dataframe)
+
+
+        # '''
+        # //////////////////////////////////////////////////////////////////////////////////////////////////////////
+        # //                                                                                                      //
+        # //        ____         _                ______                           ____                           //
+        # //       / __ \ _____ (_)_____ ___     /_  __/_____ ____ _ ____   _____ / __/____   _____ ____ ___      //
+        # //      / /_/ // ___// // ___// _ \     / /  / ___// __ `// __ \ / ___// /_ / __ \ / ___// __ `__ \     //
+        # //     / ____// /   / // /__ /  __/    / /  / /   / /_/ // / / /(__  )/ __// /_/ // /   / / / / / /     //
+        # //    /_/    /_/   /_/ \___/ \___/    /_/  /_/    \__,_//_/ /_//____//_/   \____//_/   /_/ /_/ /_/      //
+        # //                                                                                                      //
+        # //////////////////////////////////////////////////////////////////////////////////////////////////////////
+        # '''
+
+        # #AVGPRICE Average Price
+        # dataframe['avgprice'] = ta.AVGPRICE(dataframe)
+
+        # #MEDPRICE Median Price
+        # dataframe['medprice'] = ta.MEDPRICE(dataframe)
+
+        # #TYPPRICE Typical Price
+        # dataframe['typprice'] = ta.TYPPRICE(dataframe)
+
+        # #WCLPRICE Weighted Close Price
+        # dataframe['wclprice'] = ta.WCLPRICE(dataframe)
+
+        # '''
+        # //////////////////////////////////////////////////////////////////////////////////////////////////////////
+        # //                                                                                                      //
+        # //       ______              __           ____            __ _               __                         //
+        # //      / ____/__  __ _____ / /___       /  _/____   ____/ /(_)_____ ____ _ / /_ ____   _____ _____     //
+        # //     / /    / / / // ___// // _ \      / / / __ \ / __  // // ___// __ `// __// __ \ / ___// ___/     //
+        # //    / /___ / /_/ // /__ / //  __/    _/ / / / / // /_/ // // /__ / /_/ // /_ / /_/ // /   (__  )      //
+        # //    \____/ \__, / \___//_/ \___/    /___//_/ /_/ \__,_//_/ \___/ \__,_/ \__/ \____//_/   /____/       //
+        # //          /____/                                                                                      //
+        # //                                                                                                      //
+        # //////////////////////////////////////////////////////////////////////////////////////////////////////////
+        # '''
+
+        # #HT_DCPERIOD Hilbert Transform - Dominant Cycle Period
+        dataframe['ht_dcperiod'] = ta.HT_DCPERIOD(dataframe)
+
+        # #HT_DCPHASE Hilbert Transform - Dominant Cycle Phase
+        # dataframe['ht_dcphase'] = ta.HT_DCPHASE(dataframe)
+
+        # #HT_PHASOR Hilbert Transform - Phasor Components
+        # dataframe['ht_phasor_inphase'], dataframe['ht_phasor_quadrature'] = ta.HT_PHASOR(dataframe)
+
+        # #HT_SINE Hilbert Transform - SineWave
+        # dataframe['ht_sine'], dataframe['ht_leadsine'] = ta.HT_SINE(dataframe)
+
+        # #HT_TRENDMODE Hilbert Transform - Trend vs Cycle Mode
+        # dataframe['ht_trendmode'] = ta.HT_TRENDMODE(dataframe)
         informative_1h = self.dp.get_pair_dataframe(pair=metadata['pair'], timeframe='1h')
         informative_4h = self.dp.get_pair_dataframe(pair=metadata['pair'], timeframe='4h')
         informative_1d = self.dp.get_pair_dataframe(pair=metadata['pair'], timeframe='1d')
@@ -1028,340 +1361,7 @@ class Vrach_Ultimate_PRO(IStrategy):
 
         # #HT_TRENDMODE Hilbert Transform - Trend vs Cycle Mode
         # informative_1w['ht_trendmode'] = ta.HT_TRENDMODE(informative_1w)
-
-
-
-
-        # '''
-        # ////////////////////////////////////////////////////////////////////////////////////////////////////
-        # //                                                                                                //
-        # //       ____                      __                  _____  __              __ _                //
-        # //      / __ \ _   __ ___   _____ / /____ _ ____      / ___/ / /_ __  __ ____/ /(_)___   _____    //
-        # //     / / / /| | / // _ \ / ___// // __ `// __ \     \__ \ / __// / / // __  // // _ \ / ___/    //
-        # //    / /_/ / | |/ //  __// /   / // /_/ // /_/ /    ___/ // /_ / /_/ // /_/ // //  __/(__  )     //
-        # //    \____/  |___/ \___//_/   /_/ \__,_// .___/    /____/ \__/ \__,_/ \__,_//_/ \___//____/      //
-        # //                                      /_/                                                       //
-        # //                                                                                                //
-        # ////////////////////////////////////////////////////////////////////////////////////////////////////
-        # '''
-
-        # #BBANDS Bollinger Bands
-        bb = ta.BBANDS(dataframe, timeperiod=20)
-        dataframe['bb_upper'] = bb['upperband']
-        dataframe['bb_middle'] = bb['middleband']
-        dataframe['bb_lower'] = bb['lowerband']
-        dataframe['bbands_breakout_down'] = dataframe['close'] < dataframe['bb_lower']
-
         
-
-        # #DEMA Double Exponential Moving Average
-        # dataframe['dema_7'] = ta.DEMA(dataframe, timeperiod=7)
-        # dataframe['dema_25'] = ta.DEMA(dataframe, timeperiod=25)
-        # dataframe['dema_99'] = ta.DEMA(dataframe, timeperiod=99)
-        # dataframe['dema_200'] = ta.DEMA(dataframe, timeperiod=200)
-
-        # #EMA Exponential Moving Average
-        dataframe['ema_7'] = ta.EMA(dataframe, timeperiod=7)
-        dataframe['ema_25'] = ta.EMA(dataframe, timeperiod=25)
-        dataframe['ema_50'] = ta.EMA(dataframe, timeperiod=50)
-        dataframe['ema_99'] = ta.EMA(dataframe, timeperiod=99)
-        dataframe['ema_200'] = ta.EMA(dataframe, timeperiod=200)
-
-        # #FEMA Fibonacci Exponenetial Moving Average
-        # dataframe['fema_3'] = ta.EMA(dataframe, timeperiod=3)
-        # dataframe['fema_5'] = ta.EMA(dataframe, timeperiod=5)
-        # dataframe['fema_8'] = ta.EMA(dataframe, timeperiod=8)
-        # dataframe['fema_13'] = ta.EMA(dataframe, timeperiod=13)
-        # dataframe['fema_21'] = ta.EMA(dataframe, timeperiod=21)
-        # dataframe['fema_34'] = ta.EMA(dataframe, timeperiod=34)
-        # dataframe['fema_55'] = ta.EMA(dataframe, timeperiod=55)
-        # dataframe['fema_89'] = ta.EMA(dataframe, timeperiod=89)
-        # dataframe['fema_144'] = ta.EMA(dataframe, timeperiod=144)
-        # dataframe['fema_233'] = ta.EMA(dataframe, timeperiod=233)
-
-        # #HT_TRENDLINE Hilbert Transform - Instantaneous Trendline
-        # dataframe['ht_trendline'] = ta.HT_TRENDLINE(dataframe)
-
-        # #KAMA Kaufman Adaptive Moving Average
-        dataframe['kama_7'] = ta.KAMA(dataframe, timeperiod=7)
-        dataframe['kama_25'] = ta.KAMA(dataframe, timeperiod=25)
-        dataframe['kama_99'] = ta.KAMA(dataframe, timeperiod=99)
-        dataframe['kama_200'] = ta.KAMA(dataframe, timeperiod=200)
-        dataframe['kama_trend_up'] = dataframe['kama_25'] > dataframe['kama_25'].shift(1)
-        dataframe['kama_trend_down'] = dataframe['kama_25'] < dataframe['kama_25'].shift(1)
-
-        # #MA Moving average
-
-
-        # #MAMA MESA Adaptive Moving Average
-        # dataframe['mama'], dataframe['fama'] = ta.MAMA(dataframe)
-
-        # #MAVP Moving average with variable period
-
-
-        # #MIDPOINT MidPoint over period
-        # dataframe['midpoint_7'] = ta.MIDPOINT(dataframe, timeperiod=7)
-        # dataframe['midpoint_25'] = ta.MIDPOINT(dataframe, timeperiod=25)
-        # dataframe['midpoint_99'] = ta.MIDPOINT(dataframe, timeperiod=99)
-        # dataframe['midpoint_200'] = ta.MIDPOINT(dataframe, timeperiod=200)
-
-        # #MIDPRICE Midpoint Price over period
-        # dataframe['midprice_7'] = ta.MIDPRICE(dataframe, timeperiod=7)
-        # dataframe['midprice_25'] = ta.MIDPRICE(dataframe, timeperiod=25)
-        # dataframe['midprice_99'] = ta.MIDPRICE(dataframe, timeperiod=99)
-        # dataframe['midprice_200'] = ta.MIDPRICE(dataframe, timeperiod=200)
-        
-        # #SAR Parabolic SAR
-        dataframe['sar'] = ta.SAR(dataframe)
-
-        # #SAREXT Parabolic SAR - Extended
-        # dataframe['sarext'] = ta.SAREXT(dataframe)
-
-        # #SMA Simple Moving Average
-        # dataframe['sma_7'] = ta.SMA(dataframe, timeperiod=7)
-        # dataframe['sma_25'] = ta.SMA(dataframe, timeperiod=25)
-        # dataframe['sma_99'] = ta.SMA(dataframe, timeperiod=99)
-        # dataframe['sma_200'] = ta.SMA(dataframe, timeperiod=200)
-
-        # #T3 Triple Exponential Moving Average (T3)
-        # dataframe['t3_7'] = ta.T3(dataframe, timeperiod=7)
-        # dataframe['t3_25'] = ta.T3(dataframe, timeperiod=25)
-        # dataframe['t3_99'] = ta.T3(dataframe, timeperiod=99)
-        # dataframe['t3_200'] = ta.T3(dataframe, timeperiod=200)
-
-        # #TEMA Triple Exponential Moving Average
-        # dataframe['tema_7'] = ta.TEMA(dataframe, timeperiod=20)
-        # dataframe['tema_25'] = ta.TEMA(dataframe, timeperiod=25)
-        # dataframe['tema_99'] = ta.TEMA(dataframe, timeperiod=99)
-        # dataframe['tema_200'] = ta.TEMA(dataframe, timeperiod=200)
-
-        # #TRIMA Triangular Moving Average
-        # dataframe['trima_7'] = ta.TRIMA(dataframe, timeperiod=7)
-        # dataframe['trima_25'] = ta.TRIMA(dataframe, timeperiod=25)
-        # dataframe['trima_99'] = ta.TRIMA(dataframe, timeperiod=99)
-        # dataframe['trima_200'] = ta.TRIMA(dataframe, timeperiod=200)
-
-        # #WMA Weighted Moving Average
-        # dataframe['wma_7'] = ta.WMA(dataframe, timeperiod=7)
-        # dataframe['wma_25'] = ta.WMA(dataframe, timeperiod=25)
-        # dataframe['wma_99'] = ta.WMA(dataframe, timeperiod=99)
-        # dataframe['wma_200'] = ta.WMA(dataframe, timeperiod=200)
-
-        # '''
-        # ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        # //                                                                                                                                        //
-        # //        __  ___                                __                         ____            __ _               __                         //
-        # //       /  |/  /____   ____ ___   ___   ____   / /_ __  __ ____ ___       /  _/____   ____/ /(_)_____ ____ _ / /_ ____   _____ _____     //
-        # //      / /|_/ // __ \ / __ `__ \ / _ \ / __ \ / __// / / // __ `__ \      / / / __ \ / __  // // ___// __ `// __// __ \ / ___// ___/     //
-        # //     / /  / // /_/ // / / / / //  __// / / // /_ / /_/ // / / / / /    _/ / / / / // /_/ // // /__ / /_/ // /_ / /_/ // /   (__  )      //
-        # //    /_/  /_/ \____//_/ /_/ /_/ \___//_/ /_/ \__/ \__,_//_/ /_/ /_/    /___//_/ /_/ \__,_//_/ \___/ \__,_/ \__/ \____//_/   /____/       //
-        # //                                                                                                                                        //
-        # ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        # '''
-
-        # #ADX Average Directional Movement Index
-        dataframe['adx'] = ta.ADX(dataframe)
-
-        # #ADXR Average Directional Movement Index Rating
-        # dataframe['adxr'] = ta.ADXR(dataframe)
-
-        # #APO Absolute Price Oscillator
-        # dataframe['apo'] = ta.APO(dataframe)
-
-        # #AROON Aroon
-        # aroon_down, aroon_up = ta.AROON(dataframe)
-        # dataframe['aroon_down'] = aroon_down
-        # dataframe['aroon_up'] = aroon_up
-
-        # #AROONOSC Aroon Oscillator
-        # dataframe['aroonosc'] = ta.AROONOSC(dataframe)
-
-        # #BOP Balance Of Power
-        # dataframe['bop'] = ta.BOP(dataframe)
-
-        # #CCI Commodity Channel Index
-        dataframe['cci'] = ta.CCI(dataframe)
-
-        # #CMO Chande Momentum Oscillator
-        # dataframe['cmo'] = ta.CMO(dataframe)
-
-        # #DX Directional Movement Index
-        # dataframe['dx'] = ta.DX(dataframe)
-
-        # #MACD Moving Average Convergence/Divergence
-        macd, macdsignal, macdhist = ta.MACD(dataframe)
-        dataframe['macd'] = macd
-        dataframe['macdsignal'] = macdsignal
-        dataframe['macdhist'] = macdhist
-
-        # #MACDEXT MACD with controllable MA type
-        # dataframe['macdext'], _, _ = ta.MACDEXT(dataframe)
-        
-        # #MACDFIX Moving Average Convergence/Divergence Fix 12/26
-        # dataframe['macdfix'], _, _ = ta.MACDFIX(dataframe)
-
-        # #MFI Money Flow Index
-        dataframe['mfi'] = ta.MFI(dataframe)
-
-        # #MINUS_DI Minus Directional Indicator
-        dataframe['minus_di'] = ta.MINUS_DI(dataframe)
-
-        # #MINUS_DM Minus Directional Movement
-        # dataframe['minus_dm'] = ta.MINUS_DM(dataframe)
-
-        # #MOM Momentum
-        # dataframe['mom'] = ta.MOM(dataframe)
-
-        # #PLUS_DI Plus Directional Indicator
-        dataframe['plus_di'] = ta.PLUS_DI(dataframe)
-
-        # #PLUS_DM Plus Directional Movement
-        # dataframe['plus_dm'] = ta.PLUS_DM(dataframe)
-
-        # #PPO Percentage Price Oscillator
-        # dataframe['ppo'] = ta.PPO(dataframe)
-
-        # #ROC Rate of change : ((price/prevPrice)-1)*100
-        # dataframe['roc'] = ta.ROC(dataframe)
-
-        # #ROCP Rate of change Percentage: (price-prevPrice)/prevPrice
-        # dataframe['rocp'] = ta.ROCP(dataframe)
-
-        # #ROCR Rate of change ratio: (price/prevPrice)
-        # dataframe['rocr'] = ta.ROCR(dataframe)
-
-        # #ROCR100 Rate of change ratio 100 scale: (price/prevPrice)*100
-        # dataframe['rocr100'] = ta.ROCR100(dataframe)
-
-        # #RSI Relative Strength Index
-        dataframe['rsi_3'] = ta.RSI(dataframe,timeperiod=3)
-        dataframe['rsi_5'] = ta.RSI(dataframe,timeperiod=5)
-        dataframe['rsi_8'] = ta.RSI(dataframe,timeperiod=8)
-        dataframe['rsi_13'] = ta.RSI(dataframe,timeperiod=13)
-        dataframe['rsi_21'] = ta.RSI(dataframe,timeperiod=21)
-        dataframe['rsi_34'] = ta.RSI(dataframe,timeperiod=34)
-
-        # #STOCH Stochastic
-        # slowk, slowd = ta.STOCH(dataframe)
-        # dataframe['stoch_k'] = slowk
-        # dataframe['stoch_d'] = slowd
-
-        # #STOCHF Stochastic Fast
-        # fastk, fastd = ta.STOCHF(dataframe)
-        # dataframe['stochf_k'] = fastk
-        # dataframe['stochf_d'] = fastd
-        
-        # #STOCHRSI Stochastic Relative Strength Index
-        # dataframe['stochrsi_k'], dataframe['stochrsi_d'] = ta.STOCHRSI(dataframe)
-
-        # #TRIX 1-day Rate-Of-Change (ROC) of a Triple Smooth EMA
-        dataframe['trix'] = ta.TRIX(dataframe)
-
-        # #ULTOSC Ultimate Oscillator
-        # dataframe['ultosc'] = ta.ULTOSC(dataframe)
-
-        # #WILLR Williams' %R
-        # dataframe['willr'] = ta.WILLR(dataframe)
-
-
-        # '''
-        # ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        # //                                                                                                                //
-        # //     _    __        __                             ____            __ _               __                        //
-        # //    | |  / /____   / /__  __ ____ ___   ___       /  _/____   ____/ /(_)_____ ____ _ / /_ ____   _____ _____    //
-        # //    | | / // __ \ / // / / // __ `__ \ / _ \      / / / __ \ / __  // // ___// __ `// __// __ \ / ___// ___/    //
-        # //    | |/ // /_/ // // /_/ // / / / / //  __/    _/ / / / / // /_/ // // /__ / /_/ // /_ / /_/ // /   (__  )     //
-        # //    |___/ \____//_/ \__,_//_/ /_/ /_/ \___/    /___//_/ /_/ \__,_//_/ \___/ \__,_/ \__/ \____//_/   /____/      //
-        # //                                                                                                                //
-        # ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        # '''
-
-        # #AD Chaikin A/D Line
-        # dataframe['ad'] = ta.AD(dataframe)
-
-        # #ADOSC Chaikin A/D Oscillator
-        # dataframe['adosc'] = ta.ADOSC(dataframe)
-
-        # #OBV On Balance Volume
-        dataframe['obv'] = ta.OBV(dataframe)
-
-
-        # '''
-        # ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        # //                                                                                                                        //
-        # //     _    __        __        __   _  __ _  __             ____            __ _               __                        //
-        # //    | |  / /____   / /____ _ / /_ (_)/ /(_)/ /_ __  __    /  _/____   ____/ /(_)_____ ____ _ / /_ ____   _____ _____    //
-        # //    | | / // __ \ / // __ `// __// // // // __// / / /    / / / __ \ / __  // // ___// __ `// __// __ \ / ___// ___/    //
-        # //    | |/ // /_/ // // /_/ // /_ / // // // /_ / /_/ /   _/ / / / / // /_/ // // /__ / /_/ // /_ / /_/ // /   (__  )     //
-        # //    |___/ \____//_/ \__,_/ \__//_//_//_/ \__/ \__, /   /___//_/ /_/ \__,_//_/ \___/ \__,_/ \__/ \____//_/   /____/      //
-        # //                                             /____/                                                                     //
-        # //                                                                                                                        //
-        # ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        # '''
-
-        # #ATR Average True Range
-        # dataframe['atr'] = ta.ATR(dataframe)
-
-        # #NATR Normalized Average True Range
-        # dataframe['natr'] = ta.NATR(dataframe)
-
-        # #TRANGE True Range
-        # dataframe['trange'] = ta.TRANGE(dataframe)
-
-
-        # '''
-        # //////////////////////////////////////////////////////////////////////////////////////////////////////////
-        # //                                                                                                      //
-        # //        ____         _                ______                           ____                           //
-        # //       / __ \ _____ (_)_____ ___     /_  __/_____ ____ _ ____   _____ / __/____   _____ ____ ___      //
-        # //      / /_/ // ___// // ___// _ \     / /  / ___// __ `// __ \ / ___// /_ / __ \ / ___// __ `__ \     //
-        # //     / ____// /   / // /__ /  __/    / /  / /   / /_/ // / / /(__  )/ __// /_/ // /   / / / / / /     //
-        # //    /_/    /_/   /_/ \___/ \___/    /_/  /_/    \__,_//_/ /_//____//_/   \____//_/   /_/ /_/ /_/      //
-        # //                                                                                                      //
-        # //////////////////////////////////////////////////////////////////////////////////////////////////////////
-        # '''
-
-        # #AVGPRICE Average Price
-        # dataframe['avgprice'] = ta.AVGPRICE(dataframe)
-
-        # #MEDPRICE Median Price
-        # dataframe['medprice'] = ta.MEDPRICE(dataframe)
-
-        # #TYPPRICE Typical Price
-        # dataframe['typprice'] = ta.TYPPRICE(dataframe)
-
-        # #WCLPRICE Weighted Close Price
-        # dataframe['wclprice'] = ta.WCLPRICE(dataframe)
-
-        # '''
-        # //////////////////////////////////////////////////////////////////////////////////////////////////////////
-        # //                                                                                                      //
-        # //       ______              __           ____            __ _               __                         //
-        # //      / ____/__  __ _____ / /___       /  _/____   ____/ /(_)_____ ____ _ / /_ ____   _____ _____     //
-        # //     / /    / / / // ___// // _ \      / / / __ \ / __  // // ___// __ `// __// __ \ / ___// ___/     //
-        # //    / /___ / /_/ // /__ / //  __/    _/ / / / / // /_/ // // /__ / /_/ // /_ / /_/ // /   (__  )      //
-        # //    \____/ \__, / \___//_/ \___/    /___//_/ /_/ \__,_//_/ \___/ \__,_/ \__/ \____//_/   /____/       //
-        # //          /____/                                                                                      //
-        # //                                                                                                      //
-        # //////////////////////////////////////////////////////////////////////////////////////////////////////////
-        # '''
-
-        # #HT_DCPERIOD Hilbert Transform - Dominant Cycle Period
-        dataframe['ht_dcperiod'] = ta.HT_DCPERIOD(dataframe)
-
-        # #HT_DCPHASE Hilbert Transform - Dominant Cycle Phase
-        # dataframe['ht_dcphase'] = ta.HT_DCPHASE(dataframe)
-
-        # #HT_PHASOR Hilbert Transform - Phasor Components
-        # dataframe['ht_phasor_inphase'], dataframe['ht_phasor_quadrature'] = ta.HT_PHASOR(dataframe)
-
-        # #HT_SINE Hilbert Transform - SineWave
-        # dataframe['ht_sine'], dataframe['ht_leadsine'] = ta.HT_SINE(dataframe)
-
-        # #HT_TRENDMODE Hilbert Transform - Trend vs Cycle Mode
-        # dataframe['ht_trendmode'] = ta.HT_TRENDMODE(dataframe)
-
-
         dataframe = merge_informative_pair(dataframe, informative_1h, self.timeframe, '1h', ffill=True)
         dataframe = merge_informative_pair(dataframe, informative_4h, self.timeframe, '4h', ffill=True)
         dataframe = merge_informative_pair(dataframe, informative_1d, self.timeframe, '1d', ffill=True)
