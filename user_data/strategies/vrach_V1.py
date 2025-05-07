@@ -1869,6 +1869,15 @@ class Vrach_Ultimate_PRO(IStrategy):
         dataframe = merge_informative_pair(dataframe, informative_1d, self.timeframe, '1d', ffill=True)
         dataframe = merge_informative_pair(dataframe, informative_1w, self.timeframe, '1w', ffill=True)
 
+        dataframe['custom_stop_keep'] = (
+            (dataframe['ema_25_1h'] > dataframe['ema_99_1h']) &
+            (dataframe['sar_1h'] < dataframe['close']) &
+            (dataframe['macd_1h'] > dataframe['macdsignal_1h']) &
+            (dataframe['adx_1h'] > dataframe['adx_rolling_quantile_25_1h']) &
+            (dataframe['di_plus_1h'] > dataframe['di_minus_1h']) &
+            (dataframe['rsi_14_1h'] > dataframe['rsi_14_rolling_quantile_10_1h'])
+        ).astype('bool')
+        
         return dataframe
 
     def assign_trend_type(self, dataframe: DataFrame) -> DataFrame:
