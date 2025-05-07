@@ -91,10 +91,9 @@ class Vrach_Ultimate_PRO(IStrategy):
         # '''
 
         # #BBANDS Bollinger Bands
-        bb = ta.BBANDS(dataframe, timeperiod=20)
-        dataframe['bb_upper'] = bb['upperband']
-        dataframe['bb_middle'] = bb['middleband']
-        dataframe['bb_lower'] = bb['lowerband']
+        dataframe['bb_upper'] = ta.BBANDS(dataframe, nbdevup=2.0, nbdevdn=2.0)['upperband']
+        dataframe['bb_middle'] = ta.BBANDS(dataframe, nbdevup=2.0, nbdevdn=2.0)['middleband']
+        dataframe['bb_lower'] = ta.BBANDS(dataframe, nbdevup=2.0, nbdevdn=2.0)['lowerband']
         dataframe['bbands_breakout_down'] = dataframe['close'] < dataframe['bb_lower']
 
         
@@ -405,6 +404,8 @@ class Vrach_Ultimate_PRO(IStrategy):
 
         # #HT_TRENDMODE Hilbert Transform - Trend vs Cycle Mode
         # dataframe['ht_trendmode'] = ta.HT_TRENDMODE(dataframe)
+
+
         informative_1h = self.dp.get_pair_dataframe(pair=metadata['pair'], timeframe='1h')
         informative_4h = self.dp.get_pair_dataframe(pair=metadata['pair'], timeframe='4h')
         informative_1d = self.dp.get_pair_dataframe(pair=metadata['pair'], timeframe='1d')
@@ -423,10 +424,10 @@ class Vrach_Ultimate_PRO(IStrategy):
         # '''
 
         # #BBANDS Bollinger Bands
-        bb = ta.BBANDS(informative_1h, timeperiod=20)
-        informative_1h['bb_upper'] = bb['upperband']
-        informative_1h['bb_middle'] = bb['middleband']
-        informative_1h['bb_lower'] = bb['lowerband']
+
+        informative_1h['bb_upper'] = ta.BBANDS(informative_1h, nbdevup=2.0, nbdevdn=2.0)['upperband']
+        informative_1h['bb_middle'] = ta.BBANDS(informative_1h, nbdevup=2.0, nbdevdn=2.0)['middleband']
+        informative_1h['bb_lower'] = ta.BBANDS(informative_1h, nbdevup=2.0, nbdevdn=2.0)['lowerband']
         informative_1h['bbands_breakout_down'] = informative_1h['close'] < informative_1h['bb_lower']
 
         # #DEMA Double Exponential Moving Average
@@ -624,10 +625,9 @@ class Vrach_Ultimate_PRO(IStrategy):
         # informative_1h['willr'] = ta.WILLR(informative_1h)
 
         # #BBANDS Bollinger Bands
-        bb = ta.BBANDS(informative_4h, timeperiod=20)
-        informative_4h['bb_upper'] = bb['upperband']
-        informative_4h['bb_middle'] = bb['middleband']
-        informative_4h['bb_lower'] = bb['lowerband']
+        informative_4h['bb_upper'] = ta.BBANDS(informative_4h, nbdevup=2.0, nbdevdn=2.0)['upperband']
+        informative_4h['bb_middle'] = ta.BBANDS(informative_4h, nbdevup=2.0, nbdevdn=2.0)['middleband']
+        informative_4h['bb_lower'] = ta.BBANDS(informative_4h, nbdevup=2.0, nbdevdn=2.0)['lowerband']
         informative_4h['bbands_breakout_down'] = informative_4h['close'] < informative_4h['bb_lower']
 
         # #DEMA Double Exponential Moving Average
@@ -870,10 +870,9 @@ class Vrach_Ultimate_PRO(IStrategy):
         # informative_4h['ht_trendmode'] = ta.HT_TRENDMODE(informative_4h)
 
         # #BBANDS Bollinger Bands
-        bb = ta.BBANDS(informative_1d, timeperiod=20)
-        informative_1d['bb_upper'] = bb['upperband']
-        informative_1d['bb_middle'] = bb['middleband']
-        informative_1d['bb_lower'] = bb['lowerband']
+        informative_1d['bb_upper'] = ta.BBANDS(informative_1d, nbdevup=2.0, nbdevdn=2.0)['upperband']
+        informative_1d['bb_middle'] = ta.BBANDS(informative_1d, nbdevup=2.0, nbdevdn=2.0)['middleband']
+        informative_1d['bb_lower'] = ta.BBANDS(informative_1d, nbdevup=2.0, nbdevdn=2.0)['lowerband']
         informative_1d['bbands_breakout_down'] = informative_1d['close'] < informative_1d['bb_lower']
 
         # #DEMA Double Exponential Moving Average
@@ -1116,10 +1115,9 @@ class Vrach_Ultimate_PRO(IStrategy):
         # informative_1d['ht_trendmode'] = ta.HT_TRENDMODE(informative_1d)
 
         # #BBANDS Bollinger Bands
-        bb = ta.BBANDS(informative_1w, timeperiod=20)
-        informative_1w['bb_upper'] = bb['upperband']
-        informative_1w['bb_middle'] = bb['middleband']
-        informative_1w['bb_lower'] = bb['lowerband']
+        informative_1w['bb_upper'] = ta.BBANDS(informative_1w, nbdevup=2.0, nbdevdn=2.0)['upperband']
+        informative_1w['bb_middle'] = ta.BBANDS(informative_1w, nbdevup=2.0, nbdevdn=2.0)['middleband']
+        informative_1w['bb_lower'] = ta.BBANDS(informative_1w, nbdevup=2.0, nbdevdn=2.0)['lowerband']
         informative_1w['bbands_breakout_down'] = informative_1w['close'] < informative_1w['bb_lower']
 
         # #DEMA Double Exponential Moving Average
@@ -1361,7 +1359,7 @@ class Vrach_Ultimate_PRO(IStrategy):
 
         # #HT_TRENDMODE Hilbert Transform - Trend vs Cycle Mode
         # informative_1w['ht_trendmode'] = ta.HT_TRENDMODE(informative_1w)
-        
+
         dataframe = merge_informative_pair(dataframe, informative_1h, self.timeframe, '1h', ffill=True)
         dataframe = merge_informative_pair(dataframe, informative_4h, self.timeframe, '4h', ffill=True)
         dataframe = merge_informative_pair(dataframe, informative_1d, self.timeframe, '1d', ffill=True)
