@@ -95,6 +95,7 @@ class Vrach_Ultimate_PRO(IStrategy):
         dataframe['bb_middle'] = ta.BBANDS(dataframe, nbdevup=2.0, nbdevdn=2.0)['middleband']
         dataframe['bb_lower'] = ta.BBANDS(dataframe, nbdevup=2.0, nbdevdn=2.0)['lowerband']
         dataframe['bbands_breakout_down'] = dataframe['close'] < dataframe['bb_lower']
+        dataframe['bbands_breakout_up'] = dataframe['close'] > dataframe['bb_upper']
 
         
 
@@ -429,6 +430,7 @@ class Vrach_Ultimate_PRO(IStrategy):
         informative_1h['bb_middle'] = ta.BBANDS(informative_1h, nbdevup=2.0, nbdevdn=2.0)['middleband']
         informative_1h['bb_lower'] = ta.BBANDS(informative_1h, nbdevup=2.0, nbdevdn=2.0)['lowerband']
         informative_1h['bbands_breakout_down'] = informative_1h['close'] < informative_1h['bb_lower']
+        informative_1h['bbands_breakout_up'] = informative_1h['close'] > informative_1h['bb_upper']
 
         # #DEMA Double Exponential Moving Average
         # informative_1h['dema_7'] = ta.DEMA(informative_1h, timeperiod=7)
@@ -629,6 +631,7 @@ class Vrach_Ultimate_PRO(IStrategy):
         informative_4h['bb_middle'] = ta.BBANDS(informative_4h, nbdevup=2.0, nbdevdn=2.0)['middleband']
         informative_4h['bb_lower'] = ta.BBANDS(informative_4h, nbdevup=2.0, nbdevdn=2.0)['lowerband']
         informative_4h['bbands_breakout_down'] = informative_4h['close'] < informative_4h['bb_lower']
+        informative_4h['bbands_breakout_up'] = informative_4h['close'] > informative_4h['bb_upper']
 
         # #DEMA Double Exponential Moving Average
         # informative_4h['dema_7'] = ta.DEMA(informative_4h, timeperiod=7)
@@ -874,6 +877,7 @@ class Vrach_Ultimate_PRO(IStrategy):
         informative_1d['bb_middle'] = ta.BBANDS(informative_1d, nbdevup=2.0, nbdevdn=2.0)['middleband']
         informative_1d['bb_lower'] = ta.BBANDS(informative_1d, nbdevup=2.0, nbdevdn=2.0)['lowerband']
         informative_1d['bbands_breakout_down'] = informative_1d['close'] < informative_1d['bb_lower']
+        informative_1d['bbands_breakout_up'] = informative_1d['close'] > informative_1d['bb_upper']
 
         # #DEMA Double Exponential Moving Average
         # informative_1d['dema_7'] = ta.DEMA(informative_1d, timeperiod=7)
@@ -1119,6 +1123,7 @@ class Vrach_Ultimate_PRO(IStrategy):
         informative_1w['bb_middle'] = ta.BBANDS(informative_1w, nbdevup=2.0, nbdevdn=2.0)['middleband']
         informative_1w['bb_lower'] = ta.BBANDS(informative_1w, nbdevup=2.0, nbdevdn=2.0)['lowerband']
         informative_1w['bbands_breakout_down'] = informative_1w['close'] < informative_1w['bb_lower']
+        informative_1w['bbands_breakout_up'] = informative_1w['close'] > informative_1w['bb_upper']
 
         # #DEMA Double Exponential Moving Average
         # informative_1w['dema_7'] = ta.DEMA(informative_1w, timeperiod=7)
