@@ -1423,7 +1423,7 @@ class Vrach_Ultimate_PRO(IStrategy):
         dataframe.loc[
             (
                 (dataframe['trend_type'] == 'scalp') &
-                (dataframe['volume'] > dataframe['volume'].rolling(20).mean()) &
+                (dataframe['volume'].pct_change() > 0.05) &
                 (dataframe['close'] > dataframe['ema_7'])
             ),
             ['enter_long', 'scalp_entry']
@@ -1486,7 +1486,7 @@ class Vrach_Ultimate_PRO(IStrategy):
                     ((dataframe['adx'] > 20) & (dataframe['minus_di'] > dataframe['plus_di']))
                 )
             ),
-            ['exit_long', 'exit_tag']
+            ['exit_long', 'scalp_exit']
         ] = (1, 'scalp_exit')
 
         # === Swing Exit ===
@@ -1503,7 +1503,7 @@ class Vrach_Ultimate_PRO(IStrategy):
                     (dataframe['trix_4h'] < 0)
                 )
             ),
-            ['exit_long', 'exit_tag']
+            ['exit_long', 'swing_exit']
         ] = (1, 'swing_exit')
 
         # === Long Term Exit ===
@@ -1519,7 +1519,7 @@ class Vrach_Ultimate_PRO(IStrategy):
                     (dataframe['roc_1d'] < 0)
                 )
             ),
-            ['exit_long', 'exit_tag']
+            ['exit_long', 'long_exit']
         ] = (1, 'long_exit')
 
         # === Trend Exit ===
@@ -1534,7 +1534,7 @@ class Vrach_Ultimate_PRO(IStrategy):
                     (dataframe['ht_dcperiod_1w'] > dataframe['ht_dcperiod_1w'].shift(1))  # momentum opada
                 )
             ),
-            ['exit_long', 'exit_tag']
+            ['exit_long', 'trend_exit']
         ] = (1, 'trend_exit')
 
         return dataframe
