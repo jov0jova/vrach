@@ -1872,12 +1872,12 @@ class Vrach_Ultimate_PRO(IStrategy):
         dataframe['custom_stop_keep'] = (
             (dataframe['ema_25_1h'] > dataframe['ema_99_1h']) &
             (dataframe['sar_1h'] < dataframe['close']) &
-            (dataframe['macd_1h'] > dataframe['macdsignal_1h']) &
+            (dataframe['macd_1h'] > dataframe['macd_signal_1h']) &
             (dataframe['adx_1h'] > dataframe['adx_rolling_quantile_25_1h']) &
-            (dataframe['di_plus_1h'] > dataframe['di_minus_1h']) &
+            (dataframe['plus_di_1h'] > dataframe['minus_di_1h']) &
             (dataframe['rsi_14_1h'] > dataframe['rsi_14_rolling_quantile_10_1h'])
         ).astype('bool')
-        
+
         return dataframe
 
     def assign_trend_type(self, dataframe: DataFrame) -> DataFrame:
