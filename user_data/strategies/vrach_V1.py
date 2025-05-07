@@ -73,7 +73,11 @@ class Vrach_Ultimate_PRO(IStrategy):
     def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         
 
-
+        lookback_5m = 288
+        lookback_1h = 144
+        lookback_4h = 72
+        lookback_1d = 36
+        lookback_1w = 18 
 
 
 
@@ -206,6 +210,8 @@ class Vrach_Ultimate_PRO(IStrategy):
 
         # #ADX Average Directional Movement Index
         dataframe['adx'] = ta.ADX(dataframe)
+        dataframe['adx_rolling_quantile_25'] = dataframe['adx'].shift(1).rolling(window=lookback_5m).quantile(0.25)
+        dataframe['adx_rolling_quantile_75'] = dataframe['adx'].shift(1).rolling(window=lookback_5m).quantile(0.75)
 
         # #ADXR Average Directional Movement Index Rating
         # dataframe['adxr'] = ta.ADXR(dataframe)
@@ -226,6 +232,8 @@ class Vrach_Ultimate_PRO(IStrategy):
 
         # #CCI Commodity Channel Index
         dataframe['cci'] = ta.CCI(dataframe)
+        dataframe['cci_rolling_quantile_10'] = dataframe['cci'].shift(1).rolling(window=lookback_5m).quantile(0.10) # Za "oversold" uslove
+        dataframe['cci_rolling_quantile_90'] = dataframe['cci'].shift(1).rolling(window=lookback_5m).quantile(0.90) # Za "overbought" uslove
 
         # #CMO Chande Momentum Oscillator
         # dataframe['cmo'] = ta.CMO(dataframe)
@@ -247,6 +255,10 @@ class Vrach_Ultimate_PRO(IStrategy):
 
         # #MFI Money Flow Index
         dataframe['mfi'] = ta.MFI(dataframe)
+        dataframe['mfi_rolling_quantile_10'] = dataframe['mfi'].shift(1).rolling(window=lookback_5m).quantile(0.10) # Za "oversold" uslove (npr. < 20)
+        dataframe['mfi_rolling_quantile_20'] = dataframe['mfi'].shift(1).rolling(window=lookback_5m).quantile(0.20) # Alternativni "oversold"
+        dataframe['mfi_rolling_quantile_80'] = dataframe['mfi'].shift(1).rolling(window=lookback_5m).quantile(0.80) # Alternativni "overbought"
+        dataframe['mfi_rolling_quantile_90'] = dataframe['mfi'].shift(1).rolling(window=lookback_5m).quantile(0.90) # Za "overbought" uslove (npr. > 80)
 
         # #MINUS_DI Minus Directional Indicator
         dataframe['minus_di'] = ta.MINUS_DI(dataframe)
@@ -286,6 +298,20 @@ class Vrach_Ultimate_PRO(IStrategy):
         dataframe['rsi_21'] = ta.RSI(dataframe,timeperiod=21)
         dataframe['rsi_34'] = ta.RSI(dataframe,timeperiod=34)
 
+        dataframe['rsi_3_rolling_quantile_10'] = dataframe['rsi_3'].shift(1).rolling(window=lookback_5m).quantile(0.10)
+        dataframe['rsi_3_rolling_quantile_90'] = dataframe['rsi_3'].shift(1).rolling(window=lookback_5m).quantile(0.90)
+
+        dataframe['rsi_8_rolling_quantile_10'] = dataframe['rsi_8'].shift(1).rolling(window=lookback_5m).quantile(0.10)
+        dataframe['rsi_8_rolling_quantile_90'] = dataframe['rsi_8'].shift(1).rolling(window=lookback_5m).quantile(0.90)
+
+        dataframe['rsi_13_rolling_quantile_10'] = dataframe['rsi_13'].shift(1).rolling(window=lookback_5m).quantile(0.10)
+        dataframe['rsi_13_rolling_quantile_90'] = dataframe['rsi_13'].shift(1).rolling(window=lookback_5m).quantile(0.90)
+
+        dataframe['rsi_21_rolling_quantile_10'] = dataframe['rsi_21'].shift(1).rolling(window=lookback_5m).quantile(0.10)
+        dataframe['rsi_21_rolling_quantile_90'] = dataframe['rsi_21'].shift(1).rolling(window=lookback_5m).quantile(0.90)
+
+        dataframe['rsi_34_rolling_quantile_10'] = dataframe['rsi_34'].shift(1).rolling(window=lookback_5m).quantile(0.10)
+        dataframe['rsi_34_rolling_quantile_90'] = dataframe['rsi_34'].shift(1).rolling(window=lookback_5m).quantile(0.90)
         # #STOCH Stochastic
         # slowk, slowd = ta.STOCH(dataframe)
         # dataframe['stoch_k'] = slowk
@@ -301,6 +327,8 @@ class Vrach_Ultimate_PRO(IStrategy):
 
         # #TRIX 1-day Rate-Of-Change (ROC) of a Triple Smooth EMA
         dataframe['trix'] = ta.TRIX(dataframe)
+        dataframe['trix_rolling_quantile_10'] = dataframe['trix'].shift(1).rolling(window=lookback_5m).quantile(0.10) # Potencijalni signal za kupovinu (očekivanje rasta)
+        dataframe['trix_rolling_quantile_90'] = dataframe['trix'].shift(1).rolling(window=lookback_5m).quantile(0.90) # Potencijalni signal za prodaju (očekivanje pada)
 
         # #ULTOSC Ultimate Oscillator
         # dataframe['ultosc'] = ta.ULTOSC(dataframe)
@@ -424,13 +452,27 @@ class Vrach_Ultimate_PRO(IStrategy):
         # //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         # '''
 
-        # #BBANDS Bollinger Bands
+        # '''
+        # ////////////////////////////////////////////////////////////////////////////////////////////////////
+        # //                                                                                                //
+        # //       ____                      __                  _____  __              __ _                //
+        # //      / __ \ _   __ ___   _____ / /____ _ ____      / ___/ / /_ __  __ ____/ /(_)___   _____    //
+        # //     / / / /| | / // _ \ / ___// // __ `// __ \     \__ \ / __// / / // __  // // _ \ / ___/    //
+        # //    / /_/ / | |/ //  __// /   / // /_/ // /_/ /    ___/ // /_ / /_/ // /_/ // //  __/(__  )     //
+        # //    \____/  |___/ \___//_/   /_/ \__,_// .___/    /____/ \__/ \__,_/ \__,_//_/ \___//____/      //
+        # //                                      /_/                                                       //
+        # //                                                                                                //
+        # ////////////////////////////////////////////////////////////////////////////////////////////////////
+        # '''
 
+        # #BBANDS Bollinger Bands
         informative_1h['bb_upper'] = ta.BBANDS(informative_1h, nbdevup=2.0, nbdevdn=2.0)['upperband']
         informative_1h['bb_middle'] = ta.BBANDS(informative_1h, nbdevup=2.0, nbdevdn=2.0)['middleband']
         informative_1h['bb_lower'] = ta.BBANDS(informative_1h, nbdevup=2.0, nbdevdn=2.0)['lowerband']
         informative_1h['bbands_breakout_down'] = informative_1h['close'] < informative_1h['bb_lower']
         informative_1h['bbands_breakout_up'] = informative_1h['close'] > informative_1h['bb_upper']
+
+        
 
         # #DEMA Double Exponential Moving Average
         # informative_1h['dema_7'] = ta.DEMA(informative_1h, timeperiod=7)
@@ -441,7 +483,7 @@ class Vrach_Ultimate_PRO(IStrategy):
         # #EMA Exponential Moving Average
         informative_1h['ema_7'] = ta.EMA(informative_1h, timeperiod=7)
         informative_1h['ema_25'] = ta.EMA(informative_1h, timeperiod=25)
-        informative_1h['ema_50'] = ta.EMA(informative_1h, timeperiod=50)        
+        informative_1h['ema_50'] = ta.EMA(informative_1h, timeperiod=50)
         informative_1h['ema_99'] = ta.EMA(informative_1h, timeperiod=99)
         informative_1h['ema_200'] = ta.EMA(informative_1h, timeperiod=200)
 
@@ -465,8 +507,8 @@ class Vrach_Ultimate_PRO(IStrategy):
         informative_1h['kama_25'] = ta.KAMA(informative_1h, timeperiod=25)
         informative_1h['kama_99'] = ta.KAMA(informative_1h, timeperiod=99)
         informative_1h['kama_200'] = ta.KAMA(informative_1h, timeperiod=200)
-        informative_1h['kama_trend_up'] = informative_1h['kama_99'] > informative_1h['kama_99'].shift(1)
-        informative_1h['kama_trend_down'] = informative_1h['kama_99'] < informative_1h['kama_99'].shift(1)
+        informative_1h['kama_trend_up'] = informative_1h['kama_25'] > informative_1h['kama_25'].shift(1)
+        informative_1h['kama_trend_down'] = informative_1h['kama_25'] < informative_1h['kama_25'].shift(1)
 
         # #MA Moving average
 
@@ -525,8 +567,22 @@ class Vrach_Ultimate_PRO(IStrategy):
         # informative_1h['wma_99'] = ta.WMA(informative_1h, timeperiod=99)
         # informative_1h['wma_200'] = ta.WMA(informative_1h, timeperiod=200)
 
+        # '''
+        # ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        # //                                                                                                                                        //
+        # //        __  ___                                __                         ____            __ _               __                         //
+        # //       /  |/  /____   ____ ___   ___   ____   / /_ __  __ ____ ___       /  _/____   ____/ /(_)_____ ____ _ / /_ ____   _____ _____     //
+        # //      / /|_/ // __ \ / __ `__ \ / _ \ / __ \ / __// / / // __ `__ \      / / / __ \ / __  // // ___// __ `// __// __ \ / ___// ___/     //
+        # //     / /  / // /_/ // / / / / //  __// / / // /_ / /_/ // / / / / /    _/ / / / / // /_/ // // /__ / /_/ // /_ / /_/ // /   (__  )      //
+        # //    /_/  /_/ \____//_/ /_/ /_/ \___//_/ /_/ \__/ \__,_//_/ /_/ /_/    /___//_/ /_/ \__,_//_/ \___/ \__,_/ \__/ \____//_/   /____/       //
+        # //                                                                                                                                        //
+        # ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        # '''
+
         # #ADX Average Directional Movement Index
         informative_1h['adx'] = ta.ADX(informative_1h)
+        informative_1h['adx_rolling_quantile_25'] = informative_1h['adx'].shift(1).rolling(window=lookback_1h).quantile(0.25)
+        informative_1h['adx_rolling_quantile_75'] = informative_1h['adx'].shift(1).rolling(window=lookback_1h).quantile(0.75)
 
         # #ADXR Average Directional Movement Index Rating
         # informative_1h['adxr'] = ta.ADXR(informative_1h)
@@ -535,6 +591,9 @@ class Vrach_Ultimate_PRO(IStrategy):
         # informative_1h['apo'] = ta.APO(informative_1h)
 
         # #AROON Aroon
+        # aroon_down, aroon_up = ta.AROON(informative_1h)
+        # informative_1h['aroon_down'] = aroon_down
+        # informative_1h['aroon_up'] = aroon_up
 
         # #AROONOSC Aroon Oscillator
         # informative_1h['aroonosc'] = ta.AROONOSC(informative_1h)
@@ -544,6 +603,8 @@ class Vrach_Ultimate_PRO(IStrategy):
 
         # #CCI Commodity Channel Index
         informative_1h['cci'] = ta.CCI(informative_1h)
+        informative_1h['cci_rolling_quantile_10'] = informative_1h['cci'].shift(1).rolling(window=lookback_1h).quantile(0.10) # Za "oversold" uslove
+        informative_1h['cci_rolling_quantile_90'] = informative_1h['cci'].shift(1).rolling(window=lookback_1h).quantile(0.90) # Za "overbought" uslove
 
         # #CMO Chande Momentum Oscillator
         # informative_1h['cmo'] = ta.CMO(informative_1h)
@@ -565,6 +626,10 @@ class Vrach_Ultimate_PRO(IStrategy):
 
         # #MFI Money Flow Index
         informative_1h['mfi'] = ta.MFI(informative_1h)
+        informative_1h['mfi_rolling_quantile_10'] = informative_1h['mfi'].shift(1).rolling(window=lookback_1h).quantile(0.10) # Za "oversold" uslove (npr. < 20)
+        informative_1h['mfi_rolling_quantile_20'] = informative_1h['mfi'].shift(1).rolling(window=lookback_1h).quantile(0.20) # Alternativni "oversold"
+        informative_1h['mfi_rolling_quantile_80'] = informative_1h['mfi'].shift(1).rolling(window=lookback_1h).quantile(0.80) # Alternativni "overbought"
+        informative_1h['mfi_rolling_quantile_90'] = informative_1h['mfi'].shift(1).rolling(window=lookback_1h).quantile(0.90) # Za "overbought" uslove (npr. > 80)
 
         # #MINUS_DI Minus Directional Indicator
         informative_1h['minus_di'] = ta.MINUS_DI(informative_1h)
@@ -585,7 +650,7 @@ class Vrach_Ultimate_PRO(IStrategy):
         # informative_1h['ppo'] = ta.PPO(informative_1h)
 
         # #ROC Rate of change : ((price/prevPrice)-1)*100
-        informative_1h['roc'] = ta.ROC(informative_1h)
+        # informative_1h['roc'] = ta.ROC(informative_1h)
 
         # #ROCP Rate of change Percentage: (price-prevPrice)/prevPrice
         # informative_1h['rocp'] = ta.ROCP(informative_1h)
@@ -604,6 +669,20 @@ class Vrach_Ultimate_PRO(IStrategy):
         informative_1h['rsi_21'] = ta.RSI(informative_1h,timeperiod=21)
         informative_1h['rsi_34'] = ta.RSI(informative_1h,timeperiod=34)
 
+        informative_1h['rsi_3_rolling_quantile_10'] = informative_1h['rsi_3'].shift(1).rolling(window=lookback_1h).quantile(0.10)
+        informative_1h['rsi_3_rolling_quantile_90'] = informative_1h['rsi_3'].shift(1).rolling(window=lookback_1h).quantile(0.90)
+
+        informative_1h['rsi_8_rolling_quantile_10'] = informative_1h['rsi_8'].shift(1).rolling(window=lookback_1h).quantile(0.10)
+        informative_1h['rsi_8_rolling_quantile_90'] = informative_1h['rsi_8'].shift(1).rolling(window=lookback_1h).quantile(0.90)
+
+        informative_1h['rsi_13_rolling_quantile_10'] = informative_1h['rsi_13'].shift(1).rolling(window=lookback_1h).quantile(0.10)
+        informative_1h['rsi_13_rolling_quantile_90'] = informative_1h['rsi_13'].shift(1).rolling(window=lookback_1h).quantile(0.90)
+
+        informative_1h['rsi_21_rolling_quantile_10'] = informative_1h['rsi_21'].shift(1).rolling(window=lookback_1h).quantile(0.10)
+        informative_1h['rsi_21_rolling_quantile_90'] = informative_1h['rsi_21'].shift(1).rolling(window=lookback_1h).quantile(0.90)
+
+        informative_1h['rsi_34_rolling_quantile_10'] = informative_1h['rsi_34'].shift(1).rolling(window=lookback_1h).quantile(0.10)
+        informative_1h['rsi_34_rolling_quantile_90'] = informative_1h['rsi_34'].shift(1).rolling(window=lookback_1h).quantile(0.90)
         # #STOCH Stochastic
         # slowk, slowd = ta.STOCH(informative_1h)
         # informative_1h['stoch_k'] = slowk
@@ -619,6 +698,8 @@ class Vrach_Ultimate_PRO(IStrategy):
 
         # #TRIX 1-day Rate-Of-Change (ROC) of a Triple Smooth EMA
         informative_1h['trix'] = ta.TRIX(informative_1h)
+        informative_1h['trix_rolling_quantile_10'] = informative_1h['trix'].shift(1).rolling(window=lookback_1h).quantile(0.10) # Potencijalni signal za kupovinu (očekivanje rasta)
+        informative_1h['trix_rolling_quantile_90'] = informative_1h['trix'].shift(1).rolling(window=lookback_1h).quantile(0.90) # Potencijalni signal za prodaju (očekivanje pada)
 
         # #ULTOSC Ultimate Oscillator
         # informative_1h['ultosc'] = ta.ULTOSC(informative_1h)
@@ -626,12 +707,125 @@ class Vrach_Ultimate_PRO(IStrategy):
         # #WILLR Williams' %R
         # informative_1h['willr'] = ta.WILLR(informative_1h)
 
+
+        # '''
+        # ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        # //                                                                                                                //
+        # //     _    __        __                             ____            __ _               __                        //
+        # //    | |  / /____   / /__  __ ____ ___   ___       /  _/____   ____/ /(_)_____ ____ _ / /_ ____   _____ _____    //
+        # //    | | / // __ \ / // / / // __ `__ \ / _ \      / / / __ \ / __  // // ___// __ `// __// __ \ / ___// ___/    //
+        # //    | |/ // /_/ // // /_/ // / / / / //  __/    _/ / / / / // /_/ // // /__ / /_/ // /_ / /_/ // /   (__  )     //
+        # //    |___/ \____//_/ \__,_//_/ /_/ /_/ \___/    /___//_/ /_/ \__,_//_/ \___/ \__,_/ \__/ \____//_/   /____/      //
+        # //                                                                                                                //
+        # ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        # '''
+
+        # #AD Chaikin A/D Line
+        # informative_1h['ad'] = ta.AD(informative_1h)
+
+        # #ADOSC Chaikin A/D Oscillator
+        # informative_1h['adosc'] = ta.ADOSC(informative_1h)
+
+        # #OBV On Balance Volume
+        informative_1h['obv'] = ta.OBV(informative_1h)
+
+
+        # '''
+        # ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        # //                                                                                                                        //
+        # //     _    __        __        __   _  __ _  __             ____            __ _               __                        //
+        # //    | |  / /____   / /____ _ / /_ (_)/ /(_)/ /_ __  __    /  _/____   ____/ /(_)_____ ____ _ / /_ ____   _____ _____    //
+        # //    | | / // __ \ / // __ `// __// // // // __// / / /    / / / __ \ / __  // // ___// __ `// __// __ \ / ___// ___/    //
+        # //    | |/ // /_/ // // /_/ // /_ / // // // /_ / /_/ /   _/ / / / / // /_/ // // /__ / /_/ // /_ / /_/ // /   (__  )     //
+        # //    |___/ \____//_/ \__,_/ \__//_//_//_/ \__/ \__, /   /___//_/ /_/ \__,_//_/ \___/ \__,_/ \__/ \____//_/   /____/      //
+        # //                                             /____/                                                                     //
+        # //                                                                                                                        //
+        # ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        # '''
+
+        # #ATR Average True Range
+        # informative_1h['atr'] = ta.ATR(informative_1h)
+
+        # #NATR Normalized Average True Range
+        # informative_1h['natr'] = ta.NATR(informative_1h)
+
+        # #TRANGE True Range
+        # informative_1h['trange'] = ta.TRANGE(informative_1h)
+
+
+        # '''
+        # //////////////////////////////////////////////////////////////////////////////////////////////////////////
+        # //                                                                                                      //
+        # //        ____         _                ______                           ____                           //
+        # //       / __ \ _____ (_)_____ ___     /_  __/_____ ____ _ ____   _____ / __/____   _____ ____ ___      //
+        # //      / /_/ // ___// // ___// _ \     / /  / ___// __ `// __ \ / ___// /_ / __ \ / ___// __ `__ \     //
+        # //     / ____// /   / // /__ /  __/    / /  / /   / /_/ // / / /(__  )/ __// /_/ // /   / / / / / /     //
+        # //    /_/    /_/   /_/ \___/ \___/    /_/  /_/    \__,_//_/ /_//____//_/   \____//_/   /_/ /_/ /_/      //
+        # //                                                                                                      //
+        # //////////////////////////////////////////////////////////////////////////////////////////////////////////
+        # '''
+
+        # #AVGPRICE Average Price
+        # informative_1h['avgprice'] = ta.AVGPRICE(informative_1h)
+
+        # #MEDPRICE Median Price
+        # informative_1h['medprice'] = ta.MEDPRICE(informative_1h)
+
+        # #TYPPRICE Typical Price
+        # informative_1h['typprice'] = ta.TYPPRICE(informative_1h)
+
+        # #WCLPRICE Weighted Close Price
+        # informative_1h['wclprice'] = ta.WCLPRICE(informative_1h)
+
+        # '''
+        # //////////////////////////////////////////////////////////////////////////////////////////////////////////
+        # //                                                                                                      //
+        # //       ______              __           ____            __ _               __                         //
+        # //      / ____/__  __ _____ / /___       /  _/____   ____/ /(_)_____ ____ _ / /_ ____   _____ _____     //
+        # //     / /    / / / // ___// // _ \      / / / __ \ / __  // // ___// __ `// __// __ \ / ___// ___/     //
+        # //    / /___ / /_/ // /__ / //  __/    _/ / / / / // /_/ // // /__ / /_/ // /_ / /_/ // /   (__  )      //
+        # //    \____/ \__, / \___//_/ \___/    /___//_/ /_/ \__,_//_/ \___/ \__,_/ \__/ \____//_/   /____/       //
+        # //          /____/                                                                                      //
+        # //                                                                                                      //
+        # //////////////////////////////////////////////////////////////////////////////////////////////////////////
+        # '''
+
+        # #HT_DCPERIOD Hilbert Transform - Dominant Cycle Period
+        informative_1h['ht_dcperiod'] = ta.HT_DCPERIOD(informative_1h)
+
+        # #HT_DCPHASE Hilbert Transform - Dominant Cycle Phase
+        # informative_1h['ht_dcphase'] = ta.HT_DCPHASE(informative_1h)
+
+        # #HT_PHASOR Hilbert Transform - Phasor Components
+        # informative_1h['ht_phasor_inphase'], informative_1h['ht_phasor_quadrature'] = ta.HT_PHASOR(informative_1h)
+
+        # #HT_SINE Hilbert Transform - SineWave
+        # informative_1h['ht_sine'], informative_1h['ht_leadsine'] = ta.HT_SINE(informative_1h)
+
+        # #HT_TRENDMODE Hilbert Transform - Trend vs Cycle Mode
+        # informative_1h['ht_trendmode'] = ta.HT_TRENDMODE(informative_1h)
+
+        # '''
+        # ////////////////////////////////////////////////////////////////////////////////////////////////////
+        # //                                                                                                //
+        # //       ____                      __                  _____  __              __ _                //
+        # //      / __ \ _   __ ___   _____ / /____ _ ____      / ___/ / /_ __  __ ____/ /(_)___   _____    //
+        # //     / / / /| | / // _ \ / ___// // __ `// __ \     \__ \ / __// / / // __  // // _ \ / ___/    //
+        # //    / /_/ / | |/ //  __// /   / // /_/ // /_/ /    ___/ // /_ / /_/ // /_/ // //  __/(__  )     //
+        # //    \____/  |___/ \___//_/   /_/ \__,_// .___/    /____/ \__/ \__,_/ \__,_//_/ \___//____/      //
+        # //                                      /_/                                                       //
+        # //                                                                                                //
+        # ////////////////////////////////////////////////////////////////////////////////////////////////////
+        # '''
+
         # #BBANDS Bollinger Bands
         informative_4h['bb_upper'] = ta.BBANDS(informative_4h, nbdevup=2.0, nbdevdn=2.0)['upperband']
         informative_4h['bb_middle'] = ta.BBANDS(informative_4h, nbdevup=2.0, nbdevdn=2.0)['middleband']
         informative_4h['bb_lower'] = ta.BBANDS(informative_4h, nbdevup=2.0, nbdevdn=2.0)['lowerband']
         informative_4h['bbands_breakout_down'] = informative_4h['close'] < informative_4h['bb_lower']
         informative_4h['bbands_breakout_up'] = informative_4h['close'] > informative_4h['bb_upper']
+
+        
 
         # #DEMA Double Exponential Moving Average
         # informative_4h['dema_7'] = ta.DEMA(informative_4h, timeperiod=7)
@@ -666,8 +860,8 @@ class Vrach_Ultimate_PRO(IStrategy):
         informative_4h['kama_25'] = ta.KAMA(informative_4h, timeperiod=25)
         informative_4h['kama_99'] = ta.KAMA(informative_4h, timeperiod=99)
         informative_4h['kama_200'] = ta.KAMA(informative_4h, timeperiod=200)
-        informative_4h['kama_trend_up'] = informative_4h['kama_99'] > informative_4h['kama_99'].shift(1)
-        informative_4h['kama_trend_down'] = informative_4h['kama_99'] < informative_4h['kama_99'].shift(1)
+        informative_4h['kama_trend_up'] = informative_4h['kama_25'] > informative_4h['kama_25'].shift(1)
+        informative_4h['kama_trend_down'] = informative_4h['kama_25'] < informative_4h['kama_25'].shift(1)
 
         # #MA Moving average
 
@@ -726,8 +920,22 @@ class Vrach_Ultimate_PRO(IStrategy):
         # informative_4h['wma_99'] = ta.WMA(informative_4h, timeperiod=99)
         # informative_4h['wma_200'] = ta.WMA(informative_4h, timeperiod=200)
 
+        # '''
+        # ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        # //                                                                                                                                        //
+        # //        __  ___                                __                         ____            __ _               __                         //
+        # //       /  |/  /____   ____ ___   ___   ____   / /_ __  __ ____ ___       /  _/____   ____/ /(_)_____ ____ _ / /_ ____   _____ _____     //
+        # //      / /|_/ // __ \ / __ `__ \ / _ \ / __ \ / __// / / // __ `__ \      / / / __ \ / __  // // ___// __ `// __// __ \ / ___// ___/     //
+        # //     / /  / // /_/ // / / / / //  __// / / // /_ / /_/ // / / / / /    _/ / / / / // /_/ // // /__ / /_/ // /_ / /_/ // /   (__  )      //
+        # //    /_/  /_/ \____//_/ /_/ /_/ \___//_/ /_/ \__/ \__,_//_/ /_/ /_/    /___//_/ /_/ \__,_//_/ \___/ \__,_/ \__/ \____//_/   /____/       //
+        # //                                                                                                                                        //
+        # ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        # '''
+
         # #ADX Average Directional Movement Index
         informative_4h['adx'] = ta.ADX(informative_4h)
+        informative_4h['adx_rolling_quantile_25'] = informative_4h['adx'].shift(1).rolling(window=lookback_4h).quantile(0.25)
+        informative_4h['adx_rolling_quantile_75'] = informative_4h['adx'].shift(1).rolling(window=lookback_4h).quantile(0.75)
 
         # #ADXR Average Directional Movement Index Rating
         # informative_4h['adxr'] = ta.ADXR(informative_4h)
@@ -736,6 +944,9 @@ class Vrach_Ultimate_PRO(IStrategy):
         # informative_4h['apo'] = ta.APO(informative_4h)
 
         # #AROON Aroon
+        # aroon_down, aroon_up = ta.AROON(informative_4h)
+        # informative_4h['aroon_down'] = aroon_down
+        # informative_4h['aroon_up'] = aroon_up
 
         # #AROONOSC Aroon Oscillator
         # informative_4h['aroonosc'] = ta.AROONOSC(informative_4h)
@@ -745,6 +956,8 @@ class Vrach_Ultimate_PRO(IStrategy):
 
         # #CCI Commodity Channel Index
         informative_4h['cci'] = ta.CCI(informative_4h)
+        informative_4h['cci_rolling_quantile_10'] = informative_4h['cci'].shift(1).rolling(window=lookback_4h).quantile(0.10) # Za "oversold" uslove
+        informative_4h['cci_rolling_quantile_90'] = informative_4h['cci'].shift(1).rolling(window=lookback_4h).quantile(0.90) # Za "overbought" uslove
 
         # #CMO Chande Momentum Oscillator
         # informative_4h['cmo'] = ta.CMO(informative_4h)
@@ -766,6 +979,10 @@ class Vrach_Ultimate_PRO(IStrategy):
 
         # #MFI Money Flow Index
         informative_4h['mfi'] = ta.MFI(informative_4h)
+        informative_4h['mfi_rolling_quantile_10'] = informative_4h['mfi'].shift(1).rolling(window=lookback_4h).quantile(0.10) # Za "oversold" uslove (npr. < 20)
+        informative_4h['mfi_rolling_quantile_20'] = informative_4h['mfi'].shift(1).rolling(window=lookback_4h).quantile(0.20) # Alternativni "oversold"
+        informative_4h['mfi_rolling_quantile_80'] = informative_4h['mfi'].shift(1).rolling(window=lookback_4h).quantile(0.80) # Alternativni "overbought"
+        informative_4h['mfi_rolling_quantile_90'] = informative_4h['mfi'].shift(1).rolling(window=lookback_4h).quantile(0.90) # Za "overbought" uslove (npr. > 80)
 
         # #MINUS_DI Minus Directional Indicator
         informative_4h['minus_di'] = ta.MINUS_DI(informative_4h)
@@ -786,7 +1003,7 @@ class Vrach_Ultimate_PRO(IStrategy):
         # informative_4h['ppo'] = ta.PPO(informative_4h)
 
         # #ROC Rate of change : ((price/prevPrice)-1)*100
-        informative_4h['roc'] = ta.ROC(informative_4h)
+        # informative_4h['roc'] = ta.ROC(informative_4h)
 
         # #ROCP Rate of change Percentage: (price-prevPrice)/prevPrice
         # informative_4h['rocp'] = ta.ROCP(informative_4h)
@@ -805,6 +1022,20 @@ class Vrach_Ultimate_PRO(IStrategy):
         informative_4h['rsi_21'] = ta.RSI(informative_4h,timeperiod=21)
         informative_4h['rsi_34'] = ta.RSI(informative_4h,timeperiod=34)
 
+        informative_4h['rsi_3_rolling_quantile_10'] = informative_4h['rsi_3'].shift(1).rolling(window=lookback_4h).quantile(0.10)
+        informative_4h['rsi_3_rolling_quantile_90'] = informative_4h['rsi_3'].shift(1).rolling(window=lookback_4h).quantile(0.90)
+
+        informative_4h['rsi_8_rolling_quantile_10'] = informative_4h['rsi_8'].shift(1).rolling(window=lookback_4h).quantile(0.10)
+        informative_4h['rsi_8_rolling_quantile_90'] = informative_4h['rsi_8'].shift(1).rolling(window=lookback_4h).quantile(0.90)
+
+        informative_4h['rsi_13_rolling_quantile_10'] = informative_4h['rsi_13'].shift(1).rolling(window=lookback_4h).quantile(0.10)
+        informative_4h['rsi_13_rolling_quantile_90'] = informative_4h['rsi_13'].shift(1).rolling(window=lookback_4h).quantile(0.90)
+
+        informative_4h['rsi_21_rolling_quantile_10'] = informative_4h['rsi_21'].shift(1).rolling(window=lookback_4h).quantile(0.10)
+        informative_4h['rsi_21_rolling_quantile_90'] = informative_4h['rsi_21'].shift(1).rolling(window=lookback_4h).quantile(0.90)
+
+        informative_4h['rsi_34_rolling_quantile_10'] = informative_4h['rsi_34'].shift(1).rolling(window=lookback_4h).quantile(0.10)
+        informative_4h['rsi_34_rolling_quantile_90'] = informative_4h['rsi_34'].shift(1).rolling(window=lookback_4h).quantile(0.90)
         # #STOCH Stochastic
         # slowk, slowd = ta.STOCH(informative_4h)
         # informative_4h['stoch_k'] = slowk
@@ -820,12 +1051,27 @@ class Vrach_Ultimate_PRO(IStrategy):
 
         # #TRIX 1-day Rate-Of-Change (ROC) of a Triple Smooth EMA
         informative_4h['trix'] = ta.TRIX(informative_4h)
+        informative_4h['trix_rolling_quantile_10'] = informative_4h['trix'].shift(1).rolling(window=lookback_4h).quantile(0.10) # Potencijalni signal za kupovinu (očekivanje rasta)
+        informative_4h['trix_rolling_quantile_90'] = informative_4h['trix'].shift(1).rolling(window=lookback_4h).quantile(0.90) # Potencijalni signal za prodaju (očekivanje pada)
 
         # #ULTOSC Ultimate Oscillator
         # informative_4h['ultosc'] = ta.ULTOSC(informative_4h)
 
         # #WILLR Williams' %R
         # informative_4h['willr'] = ta.WILLR(informative_4h)
+
+
+        # '''
+        # ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        # //                                                                                                                //
+        # //     _    __        __                             ____            __ _               __                        //
+        # //    | |  / /____   / /__  __ ____ ___   ___       /  _/____   ____/ /(_)_____ ____ _ / /_ ____   _____ _____    //
+        # //    | | / // __ \ / // / / // __ `__ \ / _ \      / / / __ \ / __  // // ___// __ `// __// __ \ / ___// ___/    //
+        # //    | |/ // /_/ // // /_/ // / / / / //  __/    _/ / / / / // /_/ // // /__ / /_/ // /_ / /_/ // /   (__  )     //
+        # //    |___/ \____//_/ \__,_//_/ /_/ /_/ \___/    /___//_/ /_/ \__,_//_/ \___/ \__,_/ \__/ \____//_/   /____/      //
+        # //                                                                                                                //
+        # ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        # '''
 
         # #AD Chaikin A/D Line
         # informative_4h['ad'] = ta.AD(informative_4h)
@@ -836,6 +1082,20 @@ class Vrach_Ultimate_PRO(IStrategy):
         # #OBV On Balance Volume
         informative_4h['obv'] = ta.OBV(informative_4h)
 
+
+        # '''
+        # ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        # //                                                                                                                        //
+        # //     _    __        __        __   _  __ _  __             ____            __ _               __                        //
+        # //    | |  / /____   / /____ _ / /_ (_)/ /(_)/ /_ __  __    /  _/____   ____/ /(_)_____ ____ _ / /_ ____   _____ _____    //
+        # //    | | / // __ \ / // __ `// __// // // // __// / / /    / / / __ \ / __  // // ___// __ `// __// __ \ / ___// ___/    //
+        # //    | |/ // /_/ // // /_/ // /_ / // // // /_ / /_/ /   _/ / / / / // /_/ // // /__ / /_/ // /_ / /_/ // /   (__  )     //
+        # //    |___/ \____//_/ \__,_/ \__//_//_//_/ \__/ \__, /   /___//_/ /_/ \__,_//_/ \___/ \__,_/ \__/ \____//_/   /____/      //
+        # //                                             /____/                                                                     //
+        # //                                                                                                                        //
+        # ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        # '''
+
         # #ATR Average True Range
         # informative_4h['atr'] = ta.ATR(informative_4h)
 
@@ -844,6 +1104,19 @@ class Vrach_Ultimate_PRO(IStrategy):
 
         # #TRANGE True Range
         # informative_4h['trange'] = ta.TRANGE(informative_4h)
+
+
+        # '''
+        # //////////////////////////////////////////////////////////////////////////////////////////////////////////
+        # //                                                                                                      //
+        # //        ____         _                ______                           ____                           //
+        # //       / __ \ _____ (_)_____ ___     /_  __/_____ ____ _ ____   _____ / __/____   _____ ____ ___      //
+        # //      / /_/ // ___// // ___// _ \     / /  / ___// __ `// __ \ / ___// /_ / __ \ / ___// __ `__ \     //
+        # //     / ____// /   / // /__ /  __/    / /  / /   / /_/ // / / /(__  )/ __// /_/ // /   / / / / / /     //
+        # //    /_/    /_/   /_/ \___/ \___/    /_/  /_/    \__,_//_/ /_//____//_/   \____//_/   /_/ /_/ /_/      //
+        # //                                                                                                      //
+        # //////////////////////////////////////////////////////////////////////////////////////////////////////////
+        # '''
 
         # #AVGPRICE Average Price
         # informative_4h['avgprice'] = ta.AVGPRICE(informative_4h)
@@ -856,6 +1129,19 @@ class Vrach_Ultimate_PRO(IStrategy):
 
         # #WCLPRICE Weighted Close Price
         # informative_4h['wclprice'] = ta.WCLPRICE(informative_4h)
+
+        # '''
+        # //////////////////////////////////////////////////////////////////////////////////////////////////////////
+        # //                                                                                                      //
+        # //       ______              __           ____            __ _               __                         //
+        # //      / ____/__  __ _____ / /___       /  _/____   ____/ /(_)_____ ____ _ / /_ ____   _____ _____     //
+        # //     / /    / / / // ___// // _ \      / / / __ \ / __  // // ___// __ `// __// __ \ / ___// ___/     //
+        # //    / /___ / /_/ // /__ / //  __/    _/ / / / / // /_/ // // /__ / /_/ // /_ / /_/ // /   (__  )      //
+        # //    \____/ \__, / \___//_/ \___/    /___//_/ /_/ \__,_//_/ \___/ \__,_/ \__/ \____//_/   /____/       //
+        # //          /____/                                                                                      //
+        # //                                                                                                      //
+        # //////////////////////////////////////////////////////////////////////////////////////////////////////////
+        # '''
 
         # #HT_DCPERIOD Hilbert Transform - Dominant Cycle Period
         informative_4h['ht_dcperiod'] = ta.HT_DCPERIOD(informative_4h)
@@ -872,12 +1158,27 @@ class Vrach_Ultimate_PRO(IStrategy):
         # #HT_TRENDMODE Hilbert Transform - Trend vs Cycle Mode
         # informative_4h['ht_trendmode'] = ta.HT_TRENDMODE(informative_4h)
 
+        # '''
+        # ////////////////////////////////////////////////////////////////////////////////////////////////////
+        # //                                                                                                //
+        # //       ____                      __                  _____  __              __ _                //
+        # //      / __ \ _   __ ___   _____ / /____ _ ____      / ___/ / /_ __  __ ____/ /(_)___   _____    //
+        # //     / / / /| | / // _ \ / ___// // __ `// __ \     \__ \ / __// / / // __  // // _ \ / ___/    //
+        # //    / /_/ / | |/ //  __// /   / // /_/ // /_/ /    ___/ // /_ / /_/ // /_/ // //  __/(__  )     //
+        # //    \____/  |___/ \___//_/   /_/ \__,_// .___/    /____/ \__/ \__,_/ \__,_//_/ \___//____/      //
+        # //                                      /_/                                                       //
+        # //                                                                                                //
+        # ////////////////////////////////////////////////////////////////////////////////////////////////////
+        # '''
+
         # #BBANDS Bollinger Bands
         informative_1d['bb_upper'] = ta.BBANDS(informative_1d, nbdevup=2.0, nbdevdn=2.0)['upperband']
         informative_1d['bb_middle'] = ta.BBANDS(informative_1d, nbdevup=2.0, nbdevdn=2.0)['middleband']
         informative_1d['bb_lower'] = ta.BBANDS(informative_1d, nbdevup=2.0, nbdevdn=2.0)['lowerband']
         informative_1d['bbands_breakout_down'] = informative_1d['close'] < informative_1d['bb_lower']
         informative_1d['bbands_breakout_up'] = informative_1d['close'] > informative_1d['bb_upper']
+
+        
 
         # #DEMA Double Exponential Moving Average
         # informative_1d['dema_7'] = ta.DEMA(informative_1d, timeperiod=7)
@@ -912,8 +1213,8 @@ class Vrach_Ultimate_PRO(IStrategy):
         informative_1d['kama_25'] = ta.KAMA(informative_1d, timeperiod=25)
         informative_1d['kama_99'] = ta.KAMA(informative_1d, timeperiod=99)
         informative_1d['kama_200'] = ta.KAMA(informative_1d, timeperiod=200)
-        informative_1d['kama_trend_up'] = informative_1d['kama_200'] > informative_1d['kama_200'].shift(1)
-        informative_1d['kama_trend_down'] = informative_1d['kama_200'] < informative_1d['kama_200'].shift(1)
+        informative_1d['kama_trend_up'] = informative_1d['kama_25'] > informative_1d['kama_25'].shift(1)
+        informative_1d['kama_trend_down'] = informative_1d['kama_25'] < informative_1d['kama_25'].shift(1)
 
         # #MA Moving average
 
@@ -972,8 +1273,22 @@ class Vrach_Ultimate_PRO(IStrategy):
         # informative_1d['wma_99'] = ta.WMA(informative_1d, timeperiod=99)
         # informative_1d['wma_200'] = ta.WMA(informative_1d, timeperiod=200)
 
+        # '''
+        # ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        # //                                                                                                                                        //
+        # //        __  ___                                __                         ____            __ _               __                         //
+        # //       /  |/  /____   ____ ___   ___   ____   / /_ __  __ ____ ___       /  _/____   ____/ /(_)_____ ____ _ / /_ ____   _____ _____     //
+        # //      / /|_/ // __ \ / __ `__ \ / _ \ / __ \ / __// / / // __ `__ \      / / / __ \ / __  // // ___// __ `// __// __ \ / ___// ___/     //
+        # //     / /  / // /_/ // / / / / //  __// / / // /_ / /_/ // / / / / /    _/ / / / / // /_/ // // /__ / /_/ // /_ / /_/ // /   (__  )      //
+        # //    /_/  /_/ \____//_/ /_/ /_/ \___//_/ /_/ \__/ \__,_//_/ /_/ /_/    /___//_/ /_/ \__,_//_/ \___/ \__,_/ \__/ \____//_/   /____/       //
+        # //                                                                                                                                        //
+        # ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        # '''
+
         # #ADX Average Directional Movement Index
         informative_1d['adx'] = ta.ADX(informative_1d)
+        informative_1d['adx_rolling_quantile_25'] = informative_1d['adx'].shift(1).rolling(window=lookback_1d).quantile(0.25)
+        informative_1d['adx_rolling_quantile_75'] = informative_1d['adx'].shift(1).rolling(window=lookback_1d).quantile(0.75)
 
         # #ADXR Average Directional Movement Index Rating
         # informative_1d['adxr'] = ta.ADXR(informative_1d)
@@ -982,6 +1297,9 @@ class Vrach_Ultimate_PRO(IStrategy):
         # informative_1d['apo'] = ta.APO(informative_1d)
 
         # #AROON Aroon
+        # aroon_down, aroon_up = ta.AROON(informative_1d)
+        # informative_1d['aroon_down'] = aroon_down
+        # informative_1d['aroon_up'] = aroon_up
 
         # #AROONOSC Aroon Oscillator
         # informative_1d['aroonosc'] = ta.AROONOSC(informative_1d)
@@ -991,6 +1309,8 @@ class Vrach_Ultimate_PRO(IStrategy):
 
         # #CCI Commodity Channel Index
         informative_1d['cci'] = ta.CCI(informative_1d)
+        informative_1d['cci_rolling_quantile_10'] = informative_1d['cci'].shift(1).rolling(window=lookback_1d).quantile(0.10) # Za "oversold" uslove
+        informative_1d['cci_rolling_quantile_90'] = informative_1d['cci'].shift(1).rolling(window=lookback_1d).quantile(0.90) # Za "overbought" uslove
 
         # #CMO Chande Momentum Oscillator
         # informative_1d['cmo'] = ta.CMO(informative_1d)
@@ -1012,6 +1332,10 @@ class Vrach_Ultimate_PRO(IStrategy):
 
         # #MFI Money Flow Index
         informative_1d['mfi'] = ta.MFI(informative_1d)
+        informative_1d['mfi_rolling_quantile_10'] = informative_1d['mfi'].shift(1).rolling(window=lookback_1d).quantile(0.10) # Za "oversold" uslove (npr. < 20)
+        informative_1d['mfi_rolling_quantile_20'] = informative_1d['mfi'].shift(1).rolling(window=lookback_1d).quantile(0.20) # Alternativni "oversold"
+        informative_1d['mfi_rolling_quantile_80'] = informative_1d['mfi'].shift(1).rolling(window=lookback_1d).quantile(0.80) # Alternativni "overbought"
+        informative_1d['mfi_rolling_quantile_90'] = informative_1d['mfi'].shift(1).rolling(window=lookback_1d).quantile(0.90) # Za "overbought" uslove (npr. > 80)
 
         # #MINUS_DI Minus Directional Indicator
         informative_1d['minus_di'] = ta.MINUS_DI(informative_1d)
@@ -1032,7 +1356,7 @@ class Vrach_Ultimate_PRO(IStrategy):
         # informative_1d['ppo'] = ta.PPO(informative_1d)
 
         # #ROC Rate of change : ((price/prevPrice)-1)*100
-        informative_1d['roc'] = ta.ROC(informative_1d)
+        # informative_1d['roc'] = ta.ROC(informative_1d)
 
         # #ROCP Rate of change Percentage: (price-prevPrice)/prevPrice
         # informative_1d['rocp'] = ta.ROCP(informative_1d)
@@ -1051,6 +1375,20 @@ class Vrach_Ultimate_PRO(IStrategy):
         informative_1d['rsi_21'] = ta.RSI(informative_1d,timeperiod=21)
         informative_1d['rsi_34'] = ta.RSI(informative_1d,timeperiod=34)
 
+        informative_1d['rsi_3_rolling_quantile_10'] = informative_1d['rsi_3'].shift(1).rolling(window=lookback_1d).quantile(0.10)
+        informative_1d['rsi_3_rolling_quantile_90'] = informative_1d['rsi_3'].shift(1).rolling(window=lookback_1d).quantile(0.90)
+
+        informative_1d['rsi_8_rolling_quantile_10'] = informative_1d['rsi_8'].shift(1).rolling(window=lookback_1d).quantile(0.10)
+        informative_1d['rsi_8_rolling_quantile_90'] = informative_1d['rsi_8'].shift(1).rolling(window=lookback_1d).quantile(0.90)
+
+        informative_1d['rsi_13_rolling_quantile_10'] = informative_1d['rsi_13'].shift(1).rolling(window=lookback_1d).quantile(0.10)
+        informative_1d['rsi_13_rolling_quantile_90'] = informative_1d['rsi_13'].shift(1).rolling(window=lookback_1d).quantile(0.90)
+
+        informative_1d['rsi_21_rolling_quantile_10'] = informative_1d['rsi_21'].shift(1).rolling(window=lookback_1d).quantile(0.10)
+        informative_1d['rsi_21_rolling_quantile_90'] = informative_1d['rsi_21'].shift(1).rolling(window=lookback_1d).quantile(0.90)
+
+        informative_1d['rsi_34_rolling_quantile_10'] = informative_1d['rsi_34'].shift(1).rolling(window=lookback_1d).quantile(0.10)
+        informative_1d['rsi_34_rolling_quantile_90'] = informative_1d['rsi_34'].shift(1).rolling(window=lookback_1d).quantile(0.90)
         # #STOCH Stochastic
         # slowk, slowd = ta.STOCH(informative_1d)
         # informative_1d['stoch_k'] = slowk
@@ -1066,12 +1404,27 @@ class Vrach_Ultimate_PRO(IStrategy):
 
         # #TRIX 1-day Rate-Of-Change (ROC) of a Triple Smooth EMA
         informative_1d['trix'] = ta.TRIX(informative_1d)
+        informative_1d['trix_rolling_quantile_10'] = informative_1d['trix'].shift(1).rolling(window=lookback_1d).quantile(0.10) # Potencijalni signal za kupovinu (očekivanje rasta)
+        informative_1d['trix_rolling_quantile_90'] = informative_1d['trix'].shift(1).rolling(window=lookback_1d).quantile(0.90) # Potencijalni signal za prodaju (očekivanje pada)
 
         # #ULTOSC Ultimate Oscillator
         # informative_1d['ultosc'] = ta.ULTOSC(informative_1d)
 
         # #WILLR Williams' %R
         # informative_1d['willr'] = ta.WILLR(informative_1d)
+
+
+        # '''
+        # ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        # //                                                                                                                //
+        # //     _    __        __                             ____            __ _               __                        //
+        # //    | |  / /____   / /__  __ ____ ___   ___       /  _/____   ____/ /(_)_____ ____ _ / /_ ____   _____ _____    //
+        # //    | | / // __ \ / // / / // __ `__ \ / _ \      / / / __ \ / __  // // ___// __ `// __// __ \ / ___// ___/    //
+        # //    | |/ // /_/ // // /_/ // / / / / //  __/    _/ / / / / // /_/ // // /__ / /_/ // /_ / /_/ // /   (__  )     //
+        # //    |___/ \____//_/ \__,_//_/ /_/ /_/ \___/    /___//_/ /_/ \__,_//_/ \___/ \__,_/ \__/ \____//_/   /____/      //
+        # //                                                                                                                //
+        # ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        # '''
 
         # #AD Chaikin A/D Line
         # informative_1d['ad'] = ta.AD(informative_1d)
@@ -1082,6 +1435,20 @@ class Vrach_Ultimate_PRO(IStrategy):
         # #OBV On Balance Volume
         informative_1d['obv'] = ta.OBV(informative_1d)
 
+
+        # '''
+        # ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        # //                                                                                                                        //
+        # //     _    __        __        __   _  __ _  __             ____            __ _               __                        //
+        # //    | |  / /____   / /____ _ / /_ (_)/ /(_)/ /_ __  __    /  _/____   ____/ /(_)_____ ____ _ / /_ ____   _____ _____    //
+        # //    | | / // __ \ / // __ `// __// // // // __// / / /    / / / __ \ / __  // // ___// __ `// __// __ \ / ___// ___/    //
+        # //    | |/ // /_/ // // /_/ // /_ / // // // /_ / /_/ /   _/ / / / / // /_/ // // /__ / /_/ // /_ / /_/ // /   (__  )     //
+        # //    |___/ \____//_/ \__,_/ \__//_//_//_/ \__/ \__, /   /___//_/ /_/ \__,_//_/ \___/ \__,_/ \__/ \____//_/   /____/      //
+        # //                                             /____/                                                                     //
+        # //                                                                                                                        //
+        # ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        # '''
+
         # #ATR Average True Range
         # informative_1d['atr'] = ta.ATR(informative_1d)
 
@@ -1090,6 +1457,19 @@ class Vrach_Ultimate_PRO(IStrategy):
 
         # #TRANGE True Range
         # informative_1d['trange'] = ta.TRANGE(informative_1d)
+
+
+        # '''
+        # //////////////////////////////////////////////////////////////////////////////////////////////////////////
+        # //                                                                                                      //
+        # //        ____         _                ______                           ____                           //
+        # //       / __ \ _____ (_)_____ ___     /_  __/_____ ____ _ ____   _____ / __/____   _____ ____ ___      //
+        # //      / /_/ // ___// // ___// _ \     / /  / ___// __ `// __ \ / ___// /_ / __ \ / ___// __ `__ \     //
+        # //     / ____// /   / // /__ /  __/    / /  / /   / /_/ // / / /(__  )/ __// /_/ // /   / / / / / /     //
+        # //    /_/    /_/   /_/ \___/ \___/    /_/  /_/    \__,_//_/ /_//____//_/   \____//_/   /_/ /_/ /_/      //
+        # //                                                                                                      //
+        # //////////////////////////////////////////////////////////////////////////////////////////////////////////
+        # '''
 
         # #AVGPRICE Average Price
         # informative_1d['avgprice'] = ta.AVGPRICE(informative_1d)
@@ -1102,6 +1482,19 @@ class Vrach_Ultimate_PRO(IStrategy):
 
         # #WCLPRICE Weighted Close Price
         # informative_1d['wclprice'] = ta.WCLPRICE(informative_1d)
+
+        # '''
+        # //////////////////////////////////////////////////////////////////////////////////////////////////////////
+        # //                                                                                                      //
+        # //       ______              __           ____            __ _               __                         //
+        # //      / ____/__  __ _____ / /___       /  _/____   ____/ /(_)_____ ____ _ / /_ ____   _____ _____     //
+        # //     / /    / / / // ___// // _ \      / / / __ \ / __  // // ___// __ `// __// __ \ / ___// ___/     //
+        # //    / /___ / /_/ // /__ / //  __/    _/ / / / / // /_/ // // /__ / /_/ // /_ / /_/ // /   (__  )      //
+        # //    \____/ \__, / \___//_/ \___/    /___//_/ /_/ \__,_//_/ \___/ \__,_/ \__/ \____//_/   /____/       //
+        # //          /____/                                                                                      //
+        # //                                                                                                      //
+        # //////////////////////////////////////////////////////////////////////////////////////////////////////////
+        # '''
 
         # #HT_DCPERIOD Hilbert Transform - Dominant Cycle Period
         informative_1d['ht_dcperiod'] = ta.HT_DCPERIOD(informative_1d)
@@ -1118,12 +1511,27 @@ class Vrach_Ultimate_PRO(IStrategy):
         # #HT_TRENDMODE Hilbert Transform - Trend vs Cycle Mode
         # informative_1d['ht_trendmode'] = ta.HT_TRENDMODE(informative_1d)
 
+        # '''
+        # ////////////////////////////////////////////////////////////////////////////////////////////////////
+        # //                                                                                                //
+        # //       ____                      __                  _____  __              __ _                //
+        # //      / __ \ _   __ ___   _____ / /____ _ ____      / ___/ / /_ __  __ ____/ /(_)___   _____    //
+        # //     / / / /| | / // _ \ / ___// // __ `// __ \     \__ \ / __// / / // __  // // _ \ / ___/    //
+        # //    / /_/ / | |/ //  __// /   / // /_/ // /_/ /    ___/ // /_ / /_/ // /_/ // //  __/(__  )     //
+        # //    \____/  |___/ \___//_/   /_/ \__,_// .___/    /____/ \__/ \__,_/ \__,_//_/ \___//____/      //
+        # //                                      /_/                                                       //
+        # //                                                                                                //
+        # ////////////////////////////////////////////////////////////////////////////////////////////////////
+        # '''
+
         # #BBANDS Bollinger Bands
         informative_1w['bb_upper'] = ta.BBANDS(informative_1w, nbdevup=2.0, nbdevdn=2.0)['upperband']
         informative_1w['bb_middle'] = ta.BBANDS(informative_1w, nbdevup=2.0, nbdevdn=2.0)['middleband']
         informative_1w['bb_lower'] = ta.BBANDS(informative_1w, nbdevup=2.0, nbdevdn=2.0)['lowerband']
         informative_1w['bbands_breakout_down'] = informative_1w['close'] < informative_1w['bb_lower']
         informative_1w['bbands_breakout_up'] = informative_1w['close'] > informative_1w['bb_upper']
+
+        
 
         # #DEMA Double Exponential Moving Average
         # informative_1w['dema_7'] = ta.DEMA(informative_1w, timeperiod=7)
@@ -1158,9 +1566,8 @@ class Vrach_Ultimate_PRO(IStrategy):
         informative_1w['kama_25'] = ta.KAMA(informative_1w, timeperiod=25)
         informative_1w['kama_99'] = ta.KAMA(informative_1w, timeperiod=99)
         informative_1w['kama_200'] = ta.KAMA(informative_1w, timeperiod=200)
-        informative_1w['kama_trend_up'] = informative_1w['kama_200'] > informative_1w['kama_200'].shift(1)
-        informative_1w['kama_trend_down'] = informative_1w['kama_200'] < informative_1w['kama_200'].shift(1)
-
+        informative_1w['kama_trend_up'] = informative_1w['kama_25'] > informative_1w['kama_25'].shift(1)
+        informative_1w['kama_trend_down'] = informative_1w['kama_25'] < informative_1w['kama_25'].shift(1)
 
         # #MA Moving average
 
@@ -1219,8 +1626,22 @@ class Vrach_Ultimate_PRO(IStrategy):
         # informative_1w['wma_99'] = ta.WMA(informative_1w, timeperiod=99)
         # informative_1w['wma_200'] = ta.WMA(informative_1w, timeperiod=200)
 
+        # '''
+        # ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        # //                                                                                                                                        //
+        # //        __  ___                                __                         ____            __ _               __                         //
+        # //       /  |/  /____   ____ ___   ___   ____   / /_ __  __ ____ ___       /  _/____   ____/ /(_)_____ ____ _ / /_ ____   _____ _____     //
+        # //      / /|_/ // __ \ / __ `__ \ / _ \ / __ \ / __// / / // __ `__ \      / / / __ \ / __  // // ___// __ `// __// __ \ / ___// ___/     //
+        # //     / /  / // /_/ // / / / / //  __// / / // /_ / /_/ // / / / / /    _/ / / / / // /_/ // // /__ / /_/ // /_ / /_/ // /   (__  )      //
+        # //    /_/  /_/ \____//_/ /_/ /_/ \___//_/ /_/ \__/ \__,_//_/ /_/ /_/    /___//_/ /_/ \__,_//_/ \___/ \__,_/ \__/ \____//_/   /____/       //
+        # //                                                                                                                                        //
+        # ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        # '''
+
         # #ADX Average Directional Movement Index
         informative_1w['adx'] = ta.ADX(informative_1w)
+        informative_1w['adx_rolling_quantile_25'] = informative_1w['adx'].shift(1).rolling(window=lookback_1w).quantile(0.25)
+        informative_1w['adx_rolling_quantile_75'] = informative_1w['adx'].shift(1).rolling(window=lookback_1w).quantile(0.75)
 
         # #ADXR Average Directional Movement Index Rating
         # informative_1w['adxr'] = ta.ADXR(informative_1w)
@@ -1229,6 +1650,9 @@ class Vrach_Ultimate_PRO(IStrategy):
         # informative_1w['apo'] = ta.APO(informative_1w)
 
         # #AROON Aroon
+        # aroon_down, aroon_up = ta.AROON(informative_1w)
+        # informative_1w['aroon_down'] = aroon_down
+        # informative_1w['aroon_up'] = aroon_up
 
         # #AROONOSC Aroon Oscillator
         # informative_1w['aroonosc'] = ta.AROONOSC(informative_1w)
@@ -1238,6 +1662,8 @@ class Vrach_Ultimate_PRO(IStrategy):
 
         # #CCI Commodity Channel Index
         informative_1w['cci'] = ta.CCI(informative_1w)
+        informative_1w['cci_rolling_quantile_10'] = informative_1w['cci'].shift(1).rolling(window=lookback_1w).quantile(0.10) # Za "oversold" uslove
+        informative_1w['cci_rolling_quantile_90'] = informative_1w['cci'].shift(1).rolling(window=lookback_1w).quantile(0.90) # Za "overbought" uslove
 
         # #CMO Chande Momentum Oscillator
         # informative_1w['cmo'] = ta.CMO(informative_1w)
@@ -1259,6 +1685,10 @@ class Vrach_Ultimate_PRO(IStrategy):
 
         # #MFI Money Flow Index
         informative_1w['mfi'] = ta.MFI(informative_1w)
+        informative_1w['mfi_rolling_quantile_10'] = informative_1w['mfi'].shift(1).rolling(window=lookback_1w).quantile(0.10) # Za "oversold" uslove (npr. < 20)
+        informative_1w['mfi_rolling_quantile_20'] = informative_1w['mfi'].shift(1).rolling(window=lookback_1w).quantile(0.20) # Alternativni "oversold"
+        informative_1w['mfi_rolling_quantile_80'] = informative_1w['mfi'].shift(1).rolling(window=lookback_1w).quantile(0.80) # Alternativni "overbought"
+        informative_1w['mfi_rolling_quantile_90'] = informative_1w['mfi'].shift(1).rolling(window=lookback_1w).quantile(0.90) # Za "overbought" uslove (npr. > 80)
 
         # #MINUS_DI Minus Directional Indicator
         informative_1w['minus_di'] = ta.MINUS_DI(informative_1w)
@@ -1279,7 +1709,7 @@ class Vrach_Ultimate_PRO(IStrategy):
         # informative_1w['ppo'] = ta.PPO(informative_1w)
 
         # #ROC Rate of change : ((price/prevPrice)-1)*100
-        informative_1w['roc'] = ta.ROC(informative_1w)
+        # informative_1w['roc'] = ta.ROC(informative_1w)
 
         # #ROCP Rate of change Percentage: (price-prevPrice)/prevPrice
         # informative_1w['rocp'] = ta.ROCP(informative_1w)
@@ -1298,6 +1728,20 @@ class Vrach_Ultimate_PRO(IStrategy):
         informative_1w['rsi_21'] = ta.RSI(informative_1w,timeperiod=21)
         informative_1w['rsi_34'] = ta.RSI(informative_1w,timeperiod=34)
 
+        informative_1w['rsi_3_rolling_quantile_10'] = informative_1w['rsi_3'].shift(1).rolling(window=lookback_1w).quantile(0.10)
+        informative_1w['rsi_3_rolling_quantile_90'] = informative_1w['rsi_3'].shift(1).rolling(window=lookback_1w).quantile(0.90)
+
+        informative_1w['rsi_8_rolling_quantile_10'] = informative_1w['rsi_8'].shift(1).rolling(window=lookback_1w).quantile(0.10)
+        informative_1w['rsi_8_rolling_quantile_90'] = informative_1w['rsi_8'].shift(1).rolling(window=lookback_1w).quantile(0.90)
+
+        informative_1w['rsi_13_rolling_quantile_10'] = informative_1w['rsi_13'].shift(1).rolling(window=lookback_1w).quantile(0.10)
+        informative_1w['rsi_13_rolling_quantile_90'] = informative_1w['rsi_13'].shift(1).rolling(window=lookback_1w).quantile(0.90)
+
+        informative_1w['rsi_21_rolling_quantile_10'] = informative_1w['rsi_21'].shift(1).rolling(window=lookback_1w).quantile(0.10)
+        informative_1w['rsi_21_rolling_quantile_90'] = informative_1w['rsi_21'].shift(1).rolling(window=lookback_1w).quantile(0.90)
+
+        informative_1w['rsi_34_rolling_quantile_10'] = informative_1w['rsi_34'].shift(1).rolling(window=lookback_1w).quantile(0.10)
+        informative_1w['rsi_34_rolling_quantile_90'] = informative_1w['rsi_34'].shift(1).rolling(window=lookback_1w).quantile(0.90)
         # #STOCH Stochastic
         # slowk, slowd = ta.STOCH(informative_1w)
         # informative_1w['stoch_k'] = slowk
@@ -1313,12 +1757,27 @@ class Vrach_Ultimate_PRO(IStrategy):
 
         # #TRIX 1-day Rate-Of-Change (ROC) of a Triple Smooth EMA
         informative_1w['trix'] = ta.TRIX(informative_1w)
+        informative_1w['trix_rolling_quantile_10'] = informative_1w['trix'].shift(1).rolling(window=lookback_1w).quantile(0.10) # Potencijalni signal za kupovinu (očekivanje rasta)
+        informative_1w['trix_rolling_quantile_90'] = informative_1w['trix'].shift(1).rolling(window=lookback_1w).quantile(0.90) # Potencijalni signal za prodaju (očekivanje pada)
 
         # #ULTOSC Ultimate Oscillator
         # informative_1w['ultosc'] = ta.ULTOSC(informative_1w)
 
         # #WILLR Williams' %R
         # informative_1w['willr'] = ta.WILLR(informative_1w)
+
+
+        # '''
+        # ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        # //                                                                                                                //
+        # //     _    __        __                             ____            __ _               __                        //
+        # //    | |  / /____   / /__  __ ____ ___   ___       /  _/____   ____/ /(_)_____ ____ _ / /_ ____   _____ _____    //
+        # //    | | / // __ \ / // / / // __ `__ \ / _ \      / / / __ \ / __  // // ___// __ `// __// __ \ / ___// ___/    //
+        # //    | |/ // /_/ // // /_/ // / / / / //  __/    _/ / / / / // /_/ // // /__ / /_/ // /_ / /_/ // /   (__  )     //
+        # //    |___/ \____//_/ \__,_//_/ /_/ /_/ \___/    /___//_/ /_/ \__,_//_/ \___/ \__,_/ \__/ \____//_/   /____/      //
+        # //                                                                                                                //
+        # ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        # '''
 
         # #AD Chaikin A/D Line
         # informative_1w['ad'] = ta.AD(informative_1w)
@@ -1329,6 +1788,20 @@ class Vrach_Ultimate_PRO(IStrategy):
         # #OBV On Balance Volume
         informative_1w['obv'] = ta.OBV(informative_1w)
 
+
+        # '''
+        # ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        # //                                                                                                                        //
+        # //     _    __        __        __   _  __ _  __             ____            __ _               __                        //
+        # //    | |  / /____   / /____ _ / /_ (_)/ /(_)/ /_ __  __    /  _/____   ____/ /(_)_____ ____ _ / /_ ____   _____ _____    //
+        # //    | | / // __ \ / // __ `// __// // // // __// / / /    / / / __ \ / __  // // ___// __ `// __// __ \ / ___// ___/    //
+        # //    | |/ // /_/ // // /_/ // /_ / // // // /_ / /_/ /   _/ / / / / // /_/ // // /__ / /_/ // /_ / /_/ // /   (__  )     //
+        # //    |___/ \____//_/ \__,_/ \__//_//_//_/ \__/ \__, /   /___//_/ /_/ \__,_//_/ \___/ \__,_/ \__/ \____//_/   /____/      //
+        # //                                             /____/                                                                     //
+        # //                                                                                                                        //
+        # ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        # '''
+
         # #ATR Average True Range
         # informative_1w['atr'] = ta.ATR(informative_1w)
 
@@ -1337,6 +1810,19 @@ class Vrach_Ultimate_PRO(IStrategy):
 
         # #TRANGE True Range
         # informative_1w['trange'] = ta.TRANGE(informative_1w)
+
+
+        # '''
+        # //////////////////////////////////////////////////////////////////////////////////////////////////////////
+        # //                                                                                                      //
+        # //        ____         _                ______                           ____                           //
+        # //       / __ \ _____ (_)_____ ___     /_  __/_____ ____ _ ____   _____ / __/____   _____ ____ ___      //
+        # //      / /_/ // ___// // ___// _ \     / /  / ___// __ `// __ \ / ___// /_ / __ \ / ___// __ `__ \     //
+        # //     / ____// /   / // /__ /  __/    / /  / /   / /_/ // / / /(__  )/ __// /_/ // /   / / / / / /     //
+        # //    /_/    /_/   /_/ \___/ \___/    /_/  /_/    \__,_//_/ /_//____//_/   \____//_/   /_/ /_/ /_/      //
+        # //                                                                                                      //
+        # //////////////////////////////////////////////////////////////////////////////////////////////////////////
+        # '''
 
         # #AVGPRICE Average Price
         # informative_1w['avgprice'] = ta.AVGPRICE(informative_1w)
@@ -1349,6 +1835,19 @@ class Vrach_Ultimate_PRO(IStrategy):
 
         # #WCLPRICE Weighted Close Price
         # informative_1w['wclprice'] = ta.WCLPRICE(informative_1w)
+
+        # '''
+        # //////////////////////////////////////////////////////////////////////////////////////////////////////////
+        # //                                                                                                      //
+        # //       ______              __           ____            __ _               __                         //
+        # //      / ____/__  __ _____ / /___       /  _/____   ____/ /(_)_____ ____ _ / /_ ____   _____ _____     //
+        # //     / /    / / / // ___// // _ \      / / / __ \ / __  // // ___// __ `// __// __ \ / ___// ___/     //
+        # //    / /___ / /_/ // /__ / //  __/    _/ / / / / // /_/ // // /__ / /_/ // /_ / /_/ // /   (__  )      //
+        # //    \____/ \__, / \___//_/ \___/    /___//_/ /_/ \__,_//_/ \___/ \__,_/ \__/ \____//_/   /____/       //
+        # //          /____/                                                                                      //
+        # //                                                                                                      //
+        # //////////////////////////////////////////////////////////////////////////////////////////////////////////
+        # '''
 
         # #HT_DCPERIOD Hilbert Transform - Dominant Cycle Period
         informative_1w['ht_dcperiod'] = ta.HT_DCPERIOD(informative_1w)
@@ -1376,10 +1875,10 @@ class Vrach_Ultimate_PRO(IStrategy):
         dataframe['trend_type'] = 'none'
 
         scalp_cond = (
-            (dataframe['rsi_8'] < 30) & (dataframe['rsi_8'] > dataframe['rsi_8'].shift(1)) &
+            (dataframe['rsi_8'] < dataframe['rsi_8_rolling_quantile_10']) & (dataframe['rsi_8'] > dataframe['rsi_8'].shift(1)) &
             (dataframe['ema_7'] > dataframe['ema_25']) &
             (dataframe['macd'] > dataframe['macd_signal']) &
-            (dataframe['adx'] > 20) & (dataframe['plus_di'] > dataframe['minus_di'])
+            (dataframe['adx'] > dataframe['adx_rolling_quantile_25']) & (dataframe['plus_di'] > dataframe['minus_di'])
         )
 
         swing_cond = (
@@ -1433,7 +1932,7 @@ class Vrach_Ultimate_PRO(IStrategy):
         dataframe.loc[
             (
                 (dataframe['trend_type'] == 'swing') &
-                (dataframe['rsi_13_4h'] > 50) &
+                (dataframe['rsi_13_4h'] < dataframe['rsi_13_rolling_quantile_10_4h']) &
                 (dataframe['macd_4h'] > dataframe['macd_signal_4h'])
             ),
             ['enter_long', 'swing_entry']
@@ -1443,7 +1942,7 @@ class Vrach_Ultimate_PRO(IStrategy):
         dataframe.loc[
             (
                 (dataframe['trend_type'] == 'long') &
-                (dataframe['rsi_13_1d'] > 60) &
+                (dataframe['rsi_13_1d'] < dataframe['rsi_13_rolling_quantile_10_1d']) &
                 (dataframe['macd_histogram_1d'] > 0)
             ),
             ['enter_long', 'long_entry']
@@ -1454,7 +1953,7 @@ class Vrach_Ultimate_PRO(IStrategy):
             (
                 (dataframe['trend_type'] == 'trend') &
                 (dataframe['obv_1w'] > dataframe['obv_1w'].rolling(5).mean()) &
-                (dataframe['adx_1w'] > 30)
+                (dataframe['adx_1w'] > dataframe['adx_rolling_quantile_25_1w'])
             ),
             ['enter_long', 'trend_entry']
         ] = (1, 'trend_entry')
@@ -1480,10 +1979,10 @@ class Vrach_Ultimate_PRO(IStrategy):
                     (dataframe['ema_7'] < dataframe['ema_25']) |  # EMA 5 < EMA 13
                     (dataframe['sar'] > dataframe['close']) |  # SAR flip iznad sveće
                     (dataframe['bbands_breakout_down']) |  # BBANDS breakout down
-                    ((dataframe['rsi_3'] > 70) & (dataframe['rsi_3'] < dataframe['rsi_3'].shift(1))) |
-                    ((dataframe['cci'] > 100) & (dataframe['cci'] < dataframe['cci'].shift(1))) |
-                    (dataframe['mfi'] > 80) |
-                    ((dataframe['adx'] > 20) & (dataframe['minus_di'] > dataframe['plus_di']))
+                    ((dataframe['rsi_3'] >  dataframe['rsi_3_rolling_quantile_90']) & (dataframe['rsi_3'] < dataframe['rsi_3'].shift(1))) |
+                    ((dataframe['cci'] > dataframe['cci_rolling_quantile_90']) & (dataframe['cci'] < dataframe['cci'].shift(1))) |
+                    (dataframe['mfi'] > dataframe['mfi_rolling_quantile_80']) |
+                    ((dataframe['adx'] > dataframe['adx_rolling_quantile_75']) & (dataframe['minus_di'] > dataframe['plus_di']))
                 )
             ),
             ['exit_long', 'scalp_exit']
