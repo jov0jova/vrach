@@ -279,7 +279,7 @@ class Vrach_Ultimate_PRO(IStrategy):
         # dataframe['ppo'] = ta.PPO(dataframe)
 
         # #ROC Rate of change : ((price/prevPrice)-1)*100
-        # dataframe['roc'] = ta.ROC(dataframe)
+        dataframe['roc'] = ta.ROC(dataframe)
 
         # #ROCP Rate of change Percentage: (price-prevPrice)/prevPrice
         # dataframe['rocp'] = ta.ROCP(dataframe)
@@ -650,7 +650,7 @@ class Vrach_Ultimate_PRO(IStrategy):
         # informative_1h['ppo'] = ta.PPO(informative_1h)
 
         # #ROC Rate of change : ((price/prevPrice)-1)*100
-        # informative_1h['roc'] = ta.ROC(informative_1h)
+        informative_1h['roc'] = ta.ROC(informative_1h)
 
         # #ROCP Rate of change Percentage: (price-prevPrice)/prevPrice
         # informative_1h['rocp'] = ta.ROCP(informative_1h)
@@ -1003,7 +1003,7 @@ class Vrach_Ultimate_PRO(IStrategy):
         # informative_4h['ppo'] = ta.PPO(informative_4h)
 
         # #ROC Rate of change : ((price/prevPrice)-1)*100
-        # informative_4h['roc'] = ta.ROC(informative_4h)
+        informative_4h['roc'] = ta.ROC(informative_4h)
 
         # #ROCP Rate of change Percentage: (price-prevPrice)/prevPrice
         # informative_4h['rocp'] = ta.ROCP(informative_4h)
@@ -1356,7 +1356,7 @@ class Vrach_Ultimate_PRO(IStrategy):
         # informative_1d['ppo'] = ta.PPO(informative_1d)
 
         # #ROC Rate of change : ((price/prevPrice)-1)*100
-        # informative_1d['roc'] = ta.ROC(informative_1d)
+        informative_1d['roc'] = ta.ROC(informative_1d)
 
         # #ROCP Rate of change Percentage: (price-prevPrice)/prevPrice
         # informative_1d['rocp'] = ta.ROCP(informative_1d)
@@ -1709,7 +1709,7 @@ class Vrach_Ultimate_PRO(IStrategy):
         # informative_1w['ppo'] = ta.PPO(informative_1w)
 
         # #ROC Rate of change : ((price/prevPrice)-1)*100
-        # informative_1w['roc'] = ta.ROC(informative_1w)
+        informative_1w['roc'] = ta.ROC(informative_1w)
 
         # #ROCP Rate of change Percentage: (price-prevPrice)/prevPrice
         # informative_1w['rocp'] = ta.ROCP(informative_1w)
