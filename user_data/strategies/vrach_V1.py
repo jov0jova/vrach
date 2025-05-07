@@ -234,10 +234,10 @@ class Vrach_Ultimate_PRO(IStrategy):
         # dataframe['dx'] = ta.DX(dataframe)
 
         # #MACD Moving Average Convergence/Divergence
-        macd, macdsignal, macdhist = ta.MACD(dataframe)
-        dataframe['macd'] = macd
-        dataframe['macdsignal'] = macdsignal
-        dataframe['macdhist'] = macdhist
+        macd = ta.MACD(dataframe)
+        dataframe['macd'] = macd['macd']
+        dataframe['macd_signal'] = macd['macdsignal']
+        dataframe['macd_histogram'] = macd['macdhist']
 
         # #MACDEXT MACD with controllable MA type
         # dataframe['macdext'], _, _ = ta.MACDEXT(dataframe)
@@ -552,10 +552,10 @@ class Vrach_Ultimate_PRO(IStrategy):
         # informative_1h['dx'] = ta.DX(informative_1h)
 
         # #MACD Moving Average Convergence/Divergence
-        macd, macdsignal, macdhist = ta.MACD(informative_1h)
-        informative_1h['macd'] = macd
-        informative_1h['macdsignal'] = macdsignal
-        informative_1h['macdhist'] = macdhist
+        macd = ta.MACD(informative_1h)
+        informative_1h['macd'] = macd['macd']
+        informative_1h['macd_signal'] = macd['macdsignal']
+        informative_1h['macd_histogram'] = macd['macdhist']
 
         # #MACDEXT MACD with controllable MA type
         # informative_1h['macdext'], _, _ = ta.MACDEXT(informative_1h)
@@ -753,10 +753,10 @@ class Vrach_Ultimate_PRO(IStrategy):
         # informative_4h['dx'] = ta.DX(informative_4h)
 
         # #MACD Moving Average Convergence/Divergence
-        macd, macdsignal, macdhist = ta.MACD(informative_4h)
-        informative_4h['macd'] = macd
-        informative_4h['macdsignal'] = macdsignal
-        informative_4h['macdhist'] = macdhist
+        macd = ta.MACD(informative_4h)
+        informative_4h['macd'] = macd['macd']
+        informative_4h['macd_signal'] = macd['macdsignal']
+        informative_4h['macd_histogram'] = macd['macdhist']
 
         # #MACDEXT MACD with controllable MA type
         # informative_4h['macdext'], _, _ = ta.MACDEXT(informative_4h)
@@ -999,10 +999,10 @@ class Vrach_Ultimate_PRO(IStrategy):
         # informative_1d['dx'] = ta.DX(informative_1d)
 
         # #MACD Moving Average Convergence/Divergence
-        macd, macdsignal, macdhist = ta.MACD(informative_1d)
-        informative_1d['macd'] = macd
-        informative_1d['macdsignal'] = macdsignal
-        informative_1d['macdhist'] = macdhist
+        macd = ta.MACD(informative_1d)
+        informative_1d['macd'] = macd['macd']
+        informative_1d['macd_signal'] = macd['macdsignal']
+        informative_1d['macd_histogram'] = macd['macdhist']
 
         # #MACDEXT MACD with controllable MA type
         # informative_1d['macdext'], _, _ = ta.MACDEXT(informative_1d)
@@ -1246,10 +1246,10 @@ class Vrach_Ultimate_PRO(IStrategy):
         # informative_1w['dx'] = ta.DX(informative_1w)
 
         # #MACD Moving Average Convergence/Divergence
-        macd, macdsignal, macdhist = ta.MACD(informative_1w)
-        informative_1w['macd'] = macd
-        informative_1w['macdsignal'] = macdsignal
-        informative_1w['macdhist'] = macdhist
+        macd = ta.MACD(informative_1w)
+        informative_1w['macd'] = macd['macd']
+        informative_1w['macd_signal'] = macd['macdsignal']
+        informative_1w['macd_histogram'] = macd['macdhist']
 
         # #MACDEXT MACD with controllable MA type
         # informative_1w['macdext'], _, _ = ta.MACDEXT(informative_1w)
@@ -1378,7 +1378,7 @@ class Vrach_Ultimate_PRO(IStrategy):
         scalp_cond = (
             (dataframe['rsi_8'] < 30) & (dataframe['rsi_8'] > dataframe['rsi_8'].shift(1)) &
             (dataframe['ema_7'] > dataframe['ema_25']) &
-            (dataframe['macd'] > dataframe['macdsignal']) &
+            (dataframe['macd'] > dataframe['macd_signal']) &
             (dataframe['adx'] > 20) & (dataframe['plus_di'] > dataframe['minus_di'])
         )
 
@@ -1386,7 +1386,7 @@ class Vrach_Ultimate_PRO(IStrategy):
             (dataframe['ema_50_4h'] > dataframe['close']) &
             (dataframe['bbands_breakout_up_4h']) &
             (dataframe['rsi_13_4h'] > 40) &
-            (dataframe['macd_4h'] > dataframe['macdsignal_4h'])
+            (dataframe['macd_4h'] > dataframe['macd_signal_4h'])
         )
 
         long_cond = (
@@ -1434,7 +1434,7 @@ class Vrach_Ultimate_PRO(IStrategy):
             (
                 (dataframe['trend_type'] == 'swing') &
                 (dataframe['rsi_13_4h'] > 50) &
-                (dataframe['macd_4h'] > dataframe['macdsignal_4h'])
+                (dataframe['macd_4h'] > dataframe['macd_signal_4h'])
             ),
             ['enter_long', 'swing_entry']
         ] = (1, 'swing_entry')
@@ -1498,7 +1498,7 @@ class Vrach_Ultimate_PRO(IStrategy):
                     (dataframe['bbands_breakout_down_4h']) |  # BBANDS breakout down
                     (dataframe['kama_trend_down_4h']) |  # KAMA okrenut nadole (pretpostavimo da postoji ta kolona)
                     (dataframe['rsi_13_4h'] < 60) |
-                    (dataframe['macd_4h'] < dataframe['macdsignal_4h']) |
+                    (dataframe['macd_4h'] < dataframe['macd_signal_4h']) |
                     (dataframe['obv_4h'] < dataframe['obv_4h'].shift(1)) |  # OBV pada
                     (dataframe['trix_4h'] < 0)
                 )
