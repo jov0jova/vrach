@@ -1029,10 +1029,7 @@ class Vrach_Ultimate_PRO(IStrategy):
         # #HT_TRENDMODE Hilbert Transform - Trend vs Cycle Mode
         # informative_1w['ht_trendmode'] = ta.HT_TRENDMODE(informative_1w)
 
-        dataframe = merge_informative_pair(dataframe, informative_1h, self.timeframe, '1h', ffill=True)
-        dataframe = merge_informative_pair(dataframe, informative_4h, self.timeframe, '4h', ffill=True)
-        dataframe = merge_informative_pair(dataframe, informative_1d, self.timeframe, '1d', ffill=True)
-        dataframe = merge_informative_pair(dataframe, informative_1w, self.timeframe, '1w', ffill=True)
+
 
 
         # '''
@@ -1363,6 +1360,12 @@ class Vrach_Ultimate_PRO(IStrategy):
 
         # #HT_TRENDMODE Hilbert Transform - Trend vs Cycle Mode
         # dataframe['ht_trendmode'] = ta.HT_TRENDMODE(dataframe)
+
+
+        dataframe = merge_informative_pair(dataframe, informative_1h, self.timeframe, '1h', ffill=True)
+        dataframe = merge_informative_pair(dataframe, informative_4h, self.timeframe, '4h', ffill=True)
+        dataframe = merge_informative_pair(dataframe, informative_1d, self.timeframe, '1d', ffill=True)
+        dataframe = merge_informative_pair(dataframe, informative_1w, self.timeframe, '1w', ffill=True)
 
         return dataframe
 
