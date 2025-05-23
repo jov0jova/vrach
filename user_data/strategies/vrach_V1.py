@@ -56,11 +56,12 @@ class Vrach_Ultimate_PRO(IStrategy):
     
     minimal_roi = {}
     stoploss = -0.99
-    trailing_stop = True
+    trailing_stop = False
     trailing_stop_positive = 0.01
     trailing_stop_positive_offset = 0.015
     trailing_only_offset_is_reached = True
-    use_custom_stoploss = True
+    use_custom_stoploss = False
+    use_custom_exit = False
     can_short = False
     process_only_new_candles = True
     
@@ -72,8 +73,25 @@ class Vrach_Ultimate_PRO(IStrategy):
 
     def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         
+        '''
+        SELL:
 
-        lookback_5m = 144 #288
+
+        CLOSE > Close 1h 
+        CLOSE > CLOSE ROLLING 95%
+        CLOSE > Close ROLLING 90%
+
+        RSI 3 > RSI 3 Rolling 90%
+        RSI 3 > RSI 3 Rolling 95%
+
+        CLOSE > KAMA 25
+        KAMA 25 < KAMA 25 Shift 1
+        IF KAMA 25 GOING UP DONT EXIT
+
+
+        MFI > MFI ROLLING 88,2
+'''
+        lookback_5m = 288
         lookback_1h = 144
         lookback_4h = 72
         lookback_1d = 36
@@ -113,6 +131,13 @@ class Vrach_Ultimate_PRO(IStrategy):
         dataframe['ema_99'] = ta.EMA(dataframe, timeperiod=99)
         dataframe['ema_200'] = ta.EMA(dataframe, timeperiod=200)
 
+        dataframe['ema_7_rolling_quartile_01'] = ta.EMA(dataframe, timeperiod=7).rolling(window=144).quantile(0.01)
+        dataframe['ema_200_rolling_quartile_01'] = ta.EMA(dataframe, timeperiod=200).rolling(window=144).quantile(0.01)
+        dataframe['ema_200_rolling_quartile_10'] = ta.EMA(dataframe, timeperiod=200).rolling(window=144).quantile(0.10)
+        
+        dataframe['ema_7_rolling_quartile_99'] = ta.EMA(dataframe, timeperiod=7).rolling(window=144).quantile(0.995)
+        dataframe['ema_200_rolling_quartile_99'] = ta.EMA(dataframe, timeperiod=200).rolling(window=144).quantile(0.995)
+        dataframe['ema_200_rolling_quartile_90'] = ta.EMA(dataframe, timeperiod=200).rolling(window=144).quantile(0.90)
         # #FEMA Fibonacci Exponenetial Moving Average
         # dataframe['fema_3'] = ta.EMA(dataframe, timeperiod=3)
         # dataframe['fema_5'] = ta.EMA(dataframe, timeperiod=5)
@@ -297,18 +322,35 @@ class Vrach_Ultimate_PRO(IStrategy):
 
         dataframe['rsi_3_rolling_quantile_10'] = dataframe['rsi_3'].shift(1).rolling(window=lookback_5m).quantile(0.15)
         dataframe['rsi_3_rolling_quantile_90'] = dataframe['rsi_3'].shift(1).rolling(window=lookback_5m).quantile(0.85)
+        dataframe['rsi_3_rolling_quantile_5'] = dataframe['rsi_3'].shift(1).rolling(window=lookback_5m).quantile(0.05)
+        dataframe['rsi_3_rolling_quantile_95'] = dataframe['rsi_3'].shift(1).rolling(window=lookback_5m).quantile(0.95)
+
+        dataframe['rsi_5_rolling_quantile_10'] = dataframe['rsi_5'].shift(1).rolling(window=lookback_5m).quantile(0.15)
+        dataframe['rsi_5_rolling_quantile_90'] = dataframe['rsi_5'].shift(1).rolling(window=lookback_5m).quantile(0.85)
+        dataframe['rsi_5_rolling_quantile_5'] = dataframe['rsi_5'].shift(1).rolling(window=lookback_5m).quantile(0.05)
+        dataframe['rsi_5_rolling_quantile_95'] = dataframe['rsi_5'].shift(1).rolling(window=lookback_5m).quantile(0.95)
 
         dataframe['rsi_8_rolling_quantile_10'] = dataframe['rsi_8'].shift(1).rolling(window=lookback_5m).quantile(0.15)
         dataframe['rsi_8_rolling_quantile_90'] = dataframe['rsi_8'].shift(1).rolling(window=lookback_5m).quantile(0.85)
+        dataframe['rsi_8_rolling_quantile_5'] = dataframe['rsi_8'].shift(1).rolling(window=lookback_5m).quantile(0.05)
+        dataframe['rsi_8_rolling_quantile_95'] = dataframe['rsi_8'].shift(1).rolling(window=lookback_5m).quantile(0.95)
 
         dataframe['rsi_13_rolling_quantile_10'] = dataframe['rsi_13'].shift(1).rolling(window=lookback_5m).quantile(0.15)
         dataframe['rsi_13_rolling_quantile_90'] = dataframe['rsi_13'].shift(1).rolling(window=lookback_5m).quantile(0.85)
+        dataframe['rsi_13_rolling_quantile_5'] = dataframe['rsi_13'].shift(1).rolling(window=lookback_5m).quantile(0.05)
+        dataframe['rsi_13_rolling_quantile_95'] = dataframe['rsi_13'].shift(1).rolling(window=lookback_5m).quantile(0.95)
+        dataframe['rsi_13_rolling_quantile_1'] = dataframe['rsi_13'].shift(1).rolling(window=lookback_5m).quantile(0.01)
+        dataframe['rsi_13_rolling_quantile_99'] = dataframe['rsi_13'].shift(1).rolling(window=lookback_5m).quantile(0.99)
 
         dataframe['rsi_21_rolling_quantile_10'] = dataframe['rsi_21'].shift(1).rolling(window=lookback_5m).quantile(0.15)
         dataframe['rsi_21_rolling_quantile_90'] = dataframe['rsi_21'].shift(1).rolling(window=lookback_5m).quantile(0.85)
+        dataframe['rsi_21_rolling_quantile_5'] = dataframe['rsi_21'].shift(1).rolling(window=lookback_5m).quantile(0.05)
+        dataframe['rsi_21_rolling_quantile_95'] = dataframe['rsi_21'].shift(1).rolling(window=lookback_5m).quantile(0.95)
 
         dataframe['rsi_34_rolling_quantile_10'] = dataframe['rsi_34'].shift(1).rolling(window=lookback_5m).quantile(0.15)
         dataframe['rsi_34_rolling_quantile_90'] = dataframe['rsi_34'].shift(1).rolling(window=lookback_5m).quantile(0.85)
+        dataframe['rsi_34_rolling_quantile_5'] = dataframe['rsi_34'].shift(1).rolling(window=lookback_5m).quantile(0.05)
+        dataframe['rsi_34_rolling_quantile_95'] = dataframe['rsi_34'].shift(1).rolling(window=lookback_5m).quantile(0.95)
         # #STOCH Stochastic
         # slowk, slowd = ta.STOCH(dataframe)
         # dataframe['stoch_k'] = slowk
@@ -355,6 +397,9 @@ class Vrach_Ultimate_PRO(IStrategy):
         # #OBV On Balance Volume
         dataframe['obv'] = ta.OBV(dataframe)
 
+        # Volume Mean 
+        dataframe['volume_mean_30'] = dataframe['volume'].rolling(window=30).mean()
+
 
         # '''
         # ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -370,7 +415,7 @@ class Vrach_Ultimate_PRO(IStrategy):
         # '''
 
         # #ATR Average True Range
-        # dataframe['atr'] = ta.ATR(dataframe)
+        dataframe['atr'] = ta.ATR(dataframe)
 
         # #NATR Normalized Average True Range
         # dataframe['natr'] = ta.NATR(dataframe)
@@ -405,7 +450,11 @@ class Vrach_Ultimate_PRO(IStrategy):
 
         # Close Rolling 
         dataframe['close_rolling_quantile_90'] = dataframe['close'].shift(1).rolling(window=lookback_5m).quantile(0.90)
-        dataframe['close_rolling_quantile_10'] = dataframe['close'].shift(1).rolling(window=lookback_5m).quantile(0.20)
+        dataframe['close_rolling_quantile_10'] = dataframe['close'].shift(1).rolling(window=lookback_5m).quantile(0.10)
+        dataframe['close_rolling_quantile_95'] = dataframe['close'].shift(1).rolling(window=lookback_5m).quantile(0.95)
+        dataframe['close_rolling_quantile_5'] = dataframe['close'].shift(1).rolling(window=lookback_5m).quantile(0.05)
+        dataframe['close_rolling_quantile_99'] = dataframe['close'].shift(1).rolling(window=lookback_5m).quantile(0.999)
+        dataframe['close_rolling_quantile_1'] = dataframe['close'].shift(1).rolling(window=lookback_5m).quantile(0.01)
 
         # '''
         # //////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -729,7 +778,9 @@ class Vrach_Ultimate_PRO(IStrategy):
         # #OBV On Balance Volume
         informative_1h['obv'] = ta.OBV(informative_1h)
 
-
+        # Volume Mean 
+        informative_1h['volume'] = informative_1h['volume']
+        informative_1h['volume_mean_30'] = informative_1h['volume'].rolling(window=30).mean()
         # '''
         # ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         # //                                                                                                                        //
@@ -744,7 +795,7 @@ class Vrach_Ultimate_PRO(IStrategy):
         # '''
 
         # #ATR Average True Range
-        # informative_1h['atr'] = ta.ATR(informative_1h)
+        informative_1h['atr'] = ta.ATR(informative_1h)
 
         # #NATR Normalized Average True Range
         # informative_1h['natr'] = ta.NATR(informative_1h)
@@ -776,7 +827,14 @@ class Vrach_Ultimate_PRO(IStrategy):
 
         # #WCLPRICE Weighted Close Price
         # informative_1h['wclprice'] = ta.WCLPRICE(informative_1h)
-
+        # Close Rolling 
+        informative_1h['close'] = informative_1h['close']
+        informative_1h['close_rolling_quantile_90_1h'] = informative_1h['close'].shift(1).rolling(window=lookback_1h).quantile(0.90)
+        informative_1h['close_rolling_quantile_10_1h'] = informative_1h['close'].shift(1).rolling(window=lookback_1h).quantile(0.10)
+        informative_1h['close_rolling_quantile_95_1h'] = informative_1h['close'].shift(1).rolling(window=lookback_1h).quantile(0.95)
+        informative_1h['close_rolling_quantile_5_1h'] = informative_1h['close'].shift(1).rolling(window=lookback_1h).quantile(0.05)
+        informative_1h['close_rolling_quantile_99_1h'] = informative_1h['close'].shift(1).rolling(window=lookback_1h).quantile(0.999)
+        informative_1h['close_rolling_quantile_1_1h'] = informative_1h['close'].shift(1).rolling(window=lookback_1h).quantile(0.01)
         # '''
         # //////////////////////////////////////////////////////////////////////////////////////////////////////////
         # //                                                                                                      //
@@ -1082,7 +1140,9 @@ class Vrach_Ultimate_PRO(IStrategy):
         # #OBV On Balance Volume
         informative_4h['obv'] = ta.OBV(informative_4h)
 
-
+        # Volume Mean 
+        informative_4h['volume'] = informative_4h['volume']
+        informative_4h['volume_mean_30'] = informative_4h['volume'].rolling(window=30).mean()
         # '''
         # ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         # //                                                                                                                        //
@@ -1097,7 +1157,7 @@ class Vrach_Ultimate_PRO(IStrategy):
         # '''
 
         # #ATR Average True Range
-        # informative_4h['atr'] = ta.ATR(informative_4h)
+        informative_4h['atr'] = ta.ATR(informative_4h)
 
         # #NATR Normalized Average True Range
         # informative_4h['natr'] = ta.NATR(informative_4h)
@@ -1129,7 +1189,14 @@ class Vrach_Ultimate_PRO(IStrategy):
 
         # #WCLPRICE Weighted Close Price
         # informative_4h['wclprice'] = ta.WCLPRICE(informative_4h)
-
+        # Close Rolling 
+        informative_4h['close_4h'] = informative_4h['close']
+        informative_4h['close_rolling_quantile_90_4h'] = informative_4h['close_4h'].shift(1).rolling(window=lookback_4h).quantile(0.90)
+        informative_4h['close_rolling_quantile_10_4h'] = informative_4h['close_4h'].shift(1).rolling(window=lookback_4h).quantile(0.10)
+        informative_4h['close_rolling_quantile_95_4h'] = informative_4h['close_4h'].shift(1).rolling(window=lookback_4h).quantile(0.95)
+        informative_4h['close_rolling_quantile_5_4h'] = informative_4h['close_4h'].shift(1).rolling(window=lookback_4h).quantile(0.05)
+        informative_4h['close_rolling_quantile_99_4h'] = informative_4h['close_4h'].shift(1).rolling(window=lookback_4h).quantile(0.999)
+        informative_4h['close_rolling_quantile_1_4h'] = informative_4h['close_4h'].shift(1).rolling(window=lookback_4h).quantile(0.01)
         # '''
         # //////////////////////////////////////////////////////////////////////////////////////////////////////////
         # //                                                                                                      //
@@ -1435,7 +1502,9 @@ class Vrach_Ultimate_PRO(IStrategy):
         # #OBV On Balance Volume
         informative_1d['obv'] = ta.OBV(informative_1d)
 
-
+        # Volume Mean 
+        informative_1d['volume'] = informative_1d['volume']
+        informative_1d['volume_mean_30'] = informative_1d['volume'].rolling(window=30).mean()
         # '''
         # ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         # //                                                                                                                        //
@@ -1450,7 +1519,7 @@ class Vrach_Ultimate_PRO(IStrategy):
         # '''
 
         # #ATR Average True Range
-        # informative_1d['atr'] = ta.ATR(informative_1d)
+        informative_1d['atr'] = ta.ATR(informative_1d)
 
         # #NATR Normalized Average True Range
         # informative_1d['natr'] = ta.NATR(informative_1d)
@@ -1482,7 +1551,14 @@ class Vrach_Ultimate_PRO(IStrategy):
 
         # #WCLPRICE Weighted Close Price
         # informative_1d['wclprice'] = ta.WCLPRICE(informative_1d)
-
+        # Close Rolling 
+        informative_1d['close_1d'] = informative_1d['close']
+        informative_1d['close_rolling_quantile_90_1d'] = informative_1d['close_1d'].shift(1).rolling(window=lookback_1d).quantile(0.90)
+        informative_1d['close_rolling_quantile_10_1d'] = informative_1d['close_1d'].shift(1).rolling(window=lookback_1d).quantile(0.10)
+        informative_1d['close_rolling_quantile_95_1d'] = informative_1d['close_1d'].shift(1).rolling(window=lookback_1d).quantile(0.95)
+        informative_1d['close_rolling_quantile_5_1d'] = informative_1d['close_1d'].shift(1).rolling(window=lookback_1d).quantile(0.05)
+        informative_1d['close_rolling_quantile_99_1d'] = informative_1d['close_1d'].shift(1).rolling(window=lookback_1d).quantile(0.999)
+        informative_1d['close_rolling_quantile_1_1d'] = informative_1d['close_1d'].shift(1).rolling(window=lookback_1d).quantile(0.01)
         # '''
         # //////////////////////////////////////////////////////////////////////////////////////////////////////////
         # //                                                                                                      //
@@ -1510,20 +1586,20 @@ class Vrach_Ultimate_PRO(IStrategy):
 
         # #HT_TRENDMODE Hilbert Transform - Trend vs Cycle Mode
         # informative_1d['ht_trendmode'] = ta.HT_TRENDMODE(informative_1d)
-
+        
         dataframe = merge_informative_pair(dataframe, informative_1h, self.timeframe, '1h', ffill=True)
         dataframe = merge_informative_pair(dataframe, informative_4h, self.timeframe, '4h', ffill=True)
         dataframe = merge_informative_pair(dataframe, informative_1d, self.timeframe, '1d', ffill=True)
 
-        dataframe['custom_stop_keep'] = (
-            (dataframe['ema_25_1h'] > dataframe['ema_99_1h']) &
-            (dataframe['sar_1h'] < dataframe['close']) &
-            (dataframe['macd_1h'] > dataframe['macd_signal_1h']) &
-            (dataframe['adx_1h'] > dataframe['adx_rolling_quantile_25_1h']) &
-            (dataframe['plus_di_1h'] > dataframe['minus_di_1h']) &
-            (dataframe['rsi_13_1h'] > dataframe['rsi_13_rolling_quantile_10_1h'])
-        ).astype('bool')
-
+        # dataframe['custom_stop_keep'] = (
+        #     (dataframe['ema_25_1h'] > dataframe['ema_99_1h']) &
+        #     (dataframe['sar_1h'] < dataframe['close']) &
+        #     (dataframe['macd_1h'] > dataframe['macd_signal_1h']) &
+        #     (dataframe['adx_1h'] > dataframe['adx_rolling_quantile_25_1h']) &
+        #     (dataframe['plus_di_1h'] > dataframe['minus_di_1h']) &
+        #     (dataframe['rsi_13_1h'] > dataframe['rsi_13_rolling_quantile_10_1h'])
+        # ).astype('bool')
+        
         return dataframe
 
     # def assign_trend_type(self, dataframe: DataFrame) -> DataFrame:
@@ -1561,18 +1637,70 @@ class Vrach_Ultimate_PRO(IStrategy):
     #     dataframe.loc[long_cond, 'trend_type'] = 'long'
 
     #     return dataframe
+    def is_price_above_max_buy(trade, current_rate):
+        max_buy_price = max([o.price for o in trade.orders if o.is_buy])
+        return current_rate > max_buy_price
+    
+    def market_state(self,dataframe:DataFrame,metadata:dict) -> DataFrame:
+        # --- Stanje Tržišta ---
+
+        # Dnevni Timeframe (1d) - Šira Slika
+        dataframe['1d_bullish_trend'] = (dataframe['ema_50_1d'] > dataframe['ema_200_1d']) & (dataframe['close_1d'] > dataframe['ema_50_1d']) & (dataframe['adx_1d'] > 20) & (dataframe['rsi_13_1d'] > 50)
+        dataframe['1d_bearish_trend'] = (dataframe['ema_50_1d'] < dataframe['ema_200_1d']) & (dataframe['close_1d'] < dataframe['ema_50_1d']) & (dataframe['adx_1d'] > 20) & (dataframe['rsi_13_1d'] < 50)
+        dataframe['1d_ranging'] = (dataframe['adx_1d'] < 20) | ((dataframe['close_1d'] > dataframe['ema_200_1d']) & (dataframe['close_1d'] < dataframe['ema_50_1d']) & (dataframe['ema_50_1d'] < dataframe['ema_200_1d'])) # Primer za kompleksnije ranging uslove
+
+        # 4-satni Timeframe (4h) - Glavni Trend za Sesiju
+        dataframe['4h_bullish_strong_trend'] = (dataframe['ema_50_4h'] > dataframe['ema_200_4h']) & (dataframe['close_4h'] > dataframe['ema_50_4h']) & (dataframe['adx_4h'] > 25) & (dataframe['rsi_13_4h'] > 55) & (dataframe['ema_200_4h'] > dataframe['ema_200_4h'].shift(1)) # EMA_200 raste
+        dataframe['4h_bullish_trend'] = (dataframe['ema_50_4h'] > dataframe['ema_200_4h']) & (dataframe['close_4h'] > dataframe['ema_50_4h']) & (dataframe['adx_4h'] > 20) & (dataframe['rsi_13_4h'] > 50)
+        dataframe['4h_bearish_strong_trend'] = (dataframe['ema_50_4h'] < dataframe['ema_200_4h']) & (dataframe['close_4h'] < dataframe['ema_50_4h']) & (dataframe['adx_4h'] > 25) & (dataframe['rsi_13_4h'] < 45) & (dataframe['ema_200_4h'] < dataframe['ema_200_4h'].shift(1)) # EMA_200 pada
+        dataframe['4h_bearish_trend'] = (dataframe['ema_50_4h'] < dataframe['ema_200_4h']) & (dataframe['close_4h'] < dataframe['ema_50_4h']) & (dataframe['adx_4h'] > 20) & (dataframe['rsi_13_4h'] < 50)
+        dataframe['4h_ranging'] = (dataframe['adx_4h'] < 20) | ( (dataframe['bb_upper_4h'] - dataframe['bb_lower_4h']) / dataframe['bb_middle_4h'] < 0.04 ) # Bollinger Band širina kao indikator range-a
+
+        # 1-satni Timeframe (1h) - Primarni Setup Timeframe
+        dataframe['1h_bullish_momentum'] = (dataframe['ema_25_1h'] > dataframe['ema_50_1h']) & (dataframe['close_1h'] > dataframe['ema_50_1h']) & (dataframe['adx_1h'] > 20) & (dataframe['plus_di_1h'] > dataframe['minus_di_1h']) & (dataframe['rsi_13_1h'] > 50) & (dataframe['macd_1h'] > dataframe['macd_signal_1h'])
+        dataframe['1h_bearish_momentum'] = (dataframe['ema_25_1h'] < dataframe['ema_50_1h']) & (dataframe['close_1h'] < dataframe['ema_50_1h']) & (dataframe['adx_1h'] > 20) & (dataframe['plus_di_1h'] < dataframe['minus_di_1h']) & (dataframe['rsi_13_1h'] < 50) & (dataframe['macd_1h'] < dataframe['macd_signal_1h'])
+        dataframe['1h_choppy'] = (dataframe['adx_1h'] < 18) & (dataframe['atr_1h'] / dataframe['close_1h'] < 0.005) # Nizak ADX i niska volatilnost
+
+        # 5-minutni Timeframe (5m) - Ulazni Timeframe (koristimo postojeće indikatore na 'dataframe')
+        dataframe['5m_strong_bullish_burst'] = (dataframe['ema_25'] > dataframe['ema_50']) & (dataframe['rsi_13'] > 60) & (dataframe['macd'] > dataframe['macd_signal']) & (dataframe['volume'] > dataframe['volume_mean_30'] * 1.5)
+        dataframe['5m_strong_bearish_burst'] = (dataframe['ema_25'] < dataframe['ema_50']) & (dataframe['rsi_13'] < 40) & (dataframe['macd'] < dataframe['macd_signal']) & (dataframe['volume'] > dataframe['volume_mean_30'] * 1.5)
+        dataframe['5m_pullback_to_support'] = (dataframe['close'] < dataframe['ema_50']) & (dataframe['close'] > dataframe['ema_200']) & (dataframe['rsi_13'] < 40) # Primer za pullback u uptrendu
+        dataframe['5m_rejection_at_resistance'] = (dataframe['close'] > dataframe['ema_50']) & (dataframe['close'] < dataframe['ema_200']) & (dataframe['rsi_13'] > 60) # Primer za odbijanje u downtrendu
+
+        return dataframe
 
     def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        dataframe = self.market_state(dataframe, metadata)
 
+        '''
+        
+        RSI 3 < RSI3 ROLLING 10 Quartile
+        RSI 5 < RSI5 ROLLING 10 Quartile
+        RSI 8 < RSI8 ROLLING 10 Quartile
+
+        EMA 7 < EMA 25 < EMA 50 < EMA 99 < EMA 200
+
+        EMA 5 > EMA 5 Shift 1
+        EMA 8 > EMA 8 Shift 1
+
+        MACD HIST SHIFT 1 < 0
+        MACD HIST > MACD HIST Shift 1
+
+
+
+
+
+
+        '''
         # Scalping Entry
         dataframe.loc[
-            (
-                (dataframe['rsi_8'] < dataframe['rsi_8_rolling_quantile_10']) & (dataframe['rsi_8'] > dataframe['rsi_8'].shift(1)) &
-                #(dataframe['ema_7'] > dataframe['ema_25']) &
-                (dataframe['close'] < dataframe['close'].shift(1).rolling(window=36).quantile(0.10))
+            (   
+                (dataframe['rsi_13'] > dataframe['rsi_13'].shift(1)) &
+                (dataframe['ema_200'].shift(2) < dataframe['ema_200_rolling_quartile_01'].shift(3)) &
+                (dataframe['close'].shift(2) < dataframe['close_rolling_quantile_1'].shift(3)) &
+                (dataframe['rsi_13'].shift(2) < dataframe['rsi_13_rolling_quantile_1'].shift(3)) 
             ),
-            ['enter_long', 'enter_tag']] = (1, 'scalp')
-
+            ['enter_long', 'enter_tag']] = (1, 'scalp_max')
         # # Swing Entry
         # dataframe.loc[
         #     (
@@ -1606,17 +1734,23 @@ class Vrach_Ultimate_PRO(IStrategy):
         return dataframe
 
 
-    def populate_exit_trend(self, dataframe: pd.DataFrame, metadata: dict) -> pd.DataFrame:
-
-        # === Scalping Exit ===
+    def populate_exit_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        # === Scalping Exit with Profit Check ===
+        dataframe = self.market_state(dataframe, metadata)
         dataframe.loc[
-            (
-                ((dataframe['rsi_21'] >  dataframe['rsi_21_rolling_quantile_90']) & (dataframe['rsi_3'] < dataframe['rsi_3'].shift(1))) &
-                (dataframe['close'] > dataframe['close'].shift(1).rolling(window=36).quantile(0.9))
-            ),
-            ['exit_long', 'scalp_exit']
-        ] = (1, 'scalp_exit')
+            (   
 
+                (dataframe['rsi_13'] < dataframe['rsi_13'].shift(1)) &
+                (dataframe['ema_200'].shift(2) > dataframe['ema_200_rolling_quartile_99'].shift(3)) &
+                (dataframe['close'].shift(2) > dataframe['close_rolling_quantile_99'].shift(3)) &
+                (dataframe['close'] > dataframe['close_1d']) &
+                (dataframe['rsi_13'].shift(2) > dataframe['rsi_13_rolling_quantile_99'].shift(3)) &
+                (dataframe['ema_200_4h']> dataframe['ema_200_1d'])
+                #(dataframe['ema_25'] < dataframe['ema_50_1h'].shift(1)) 
+                #(dataframe['ema_200_4h'] < dataframe['ema_200_4h'].shift(1)) 
+                #(dataframe['adx_1h'] > 20) & (dataframe['plus_di_1h'] < dataframe['minus_di_1h'])
+            ),
+            ['exit_long', 'exit_tag']] = (1, 'scalp_max')
         # # === Swing Exit ===
         # dataframe.loc[
         #     (
@@ -1667,20 +1801,22 @@ class Vrach_Ultimate_PRO(IStrategy):
 
         return dataframe
 
-    def custom_stoploss(self, pair: str, trade: Trade, current_time: datetime, current_rate: float, current_profit: float, **kwargs) -> float:
-        # Dohvati poslednji poznati red iz DataProvider-a
-        dataframe, _ = self.dp.get_analyzed_dataframe(pair, self.timeframe)
 
-        if dataframe is None or len(dataframe) < 1:
-            return 1  # ne prekidaj
+    # def custom_stoploss(self, pair: str, trade: Trade, current_time: datetime, current_rate: float, current_profit: float, **kwargs) -> float:
+    #     # Dohvati poslednji poznati red iz DataProvider-a
+    #     dataframe, _ = self.dp.get_analyzed_dataframe(pair, self.timeframe)
 
-        last_candle = dataframe.iloc[-1]
+    #     if dataframe is None or len(dataframe) < 1:
+    #         return 1  # ne prekidaj
 
-        if last_candle['custom_stop_keep']:
-            return 1  # Drži poziciju
+    #     last_candle = dataframe.iloc[-1]
 
-        # Panic exit logika (dodaj ako želiš više signala)
-        if last_candle['rsi_13_1h'] < 30 and last_candle['macd_histogram_1h'] < 0:
-            return 0.98  # Stop-out na -2%
+    #     if last_candle['custom_stop_keep']:
+    #         return 1  # Drži poziciju
 
-        return 0.95  # Fallback SL
+    #     # Panic exit logika (dodaj ako želiš više signala)
+    #     if last_candle['rsi_13_1h'] < 30 and last_candle['macd_histogram_1h'] < 0:
+    #         return 0.98  # Stop-out na -2%
+
+    #     return 0.95  # Fallback SL
+
