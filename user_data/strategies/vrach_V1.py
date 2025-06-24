@@ -151,11 +151,7 @@ class Vrach_Ultimate_PRO(IStrategy):
     def multi_tf_market_scoring(self, pair: str) -> dict:
         """
         Višetimeframe analiza tržišta sa višeslojnim skoringom i pozicionim preporukama.
-        
-        Timeframe-ovi: 1h, 4h, 1d
-        Score nivoi: Trend, Momentum, Volatility, Structure, Final
-
-        :return: Dict sa score-ovima po TF + globalna preporuka pozicije
+        Dodaje i tekstualnu procenu stanja tržišta.
         """
         import talib.abstract as ta
         tf_weights = {'1h': 0.3, '4h': 0.4, '1d': 0.3}
@@ -208,14 +204,14 @@ class Vrach_Ultimate_PRO(IStrategy):
             else:
                 vol_score = 10
 
-            # L4: Structure (Price Action)
+            # L4: Structure
             hh = close.iloc[-1] > close.iloc[-5]
             hl = low.iloc[-1] > low.iloc[-5]
             structure_score = 0
             if hh: structure_score += 50
             if hl: structure_score += 50
 
-            # L5: Final Score (po TF)
+            # L5: Final Score
             total_score = (trend_score * 0.3 + momentum_score * 0.3 +
                         vol_score * 0.2 + structure_score * 0.2)
             total_score = int(total_score)
@@ -228,23 +224,39 @@ class Vrach_Ultimate_PRO(IStrategy):
                 "L5_Final": int(total_score)
             }
 
-            # Učestvuje u kompozitnom skoru
             composite_score += total_score * tf_weights[tf]
 
-        # Finalna preporuka za veličinu pozicije (0.0 do 1.0)
+        composite_score = int(composite_score)
         position_size = round(min(composite_score / 100, 1.0), 2)
+
+        # Dodavanje market state deskripcije
+        if composite_score >= 85:
+            market_state = "Bullish Strong"
+        elif composite_score >= 65:
+            market_state = "Bullish Weak"
+        elif composite_score >= 50:
+            market_state = "Sideways Volatile"
+        elif composite_score >= 35:
+            market_state = "Sideways Calm"
+        elif composite_score >= 15:
+            market_state = "Bearish Weak"
+        else:
+            market_state = "Bearish Strong"
 
         return {
             "scores": final_scores,
-            "composite_score": int(composite_score),
-            "position_size": position_size
+            "composite_score": composite_score,
+            "position_size": position_size,
+            "market_state": market_state
         }
+
 
     def populate_entry_trend(self, dataframe: pd.DataFrame, metadata: dict) -> pd.DataFrame:
 
+        return dataframe
+    def populate_exit_trend(self, dataframe: pd.DataFrame, metadata: dict) -> pd.DataFrame:
 
         return dataframe
-
 
     def custom_stoploss(self, pair: str, trade: Trade, current_time: datetime, current_rate: float,
                         current_profit: float, **kwargs) -> float:
